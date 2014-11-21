@@ -6,6 +6,8 @@
    {maxT, infinity},
    {registered, ${REGISTERED}},
    {included_applications, []},
-   {applications, [kernel, stdlib]},
+   {applications, [kernel, stdlib, sasl]},
    {env, []},
-   {start_phases, []}]}.
+   {start_phases, []},
+   {mod, {callbackModule, []}}
+]}.
