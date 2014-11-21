@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="scala" name="Scala">
+      <configuration>
+        <option name="compilerLibraryLevel" value="Project" />
+        <option name="compilerLibraryName" value="Maven: org.scala-lang:scala-compiler-bundle:2.10.3" />
+        <option name="vmOptions" value="" />
+      </configuration>
+    </facet>
+  </component>
+  <component name="NewModuleRootManager" inherit-compiler-output="false">
+    <output url="file://$MODULE_DIR$/../client/target/classes" />
+    <output-test url="file://$MODULE_DIR$/../client/target/test-classes" />
+    <content url="file://$MODULE_DIR$/../client">
+      <sourceFolder url="file://$MODULE_DIR$/../client/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../client/src/main/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/../client/src/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/../client/src/test/scala" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/../client/target" />
+    </content>
+    <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" scope="TEST" name="Maven: junit:junit:3.8.1" level="project" />
+    <orderEntry type="library" name="Maven: org.scala-lang:scala-library:2.10.3" level="project" />
+  </component>
+</module>
+
