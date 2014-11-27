@@ -1,4 +1,3 @@
-idea/.idea/workspace.xml
-client/target
-server/target
-
+^idea/.idea/workspace.xml
+^client/target
+^server/target
