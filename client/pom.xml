@@ -43,7 +43,7 @@
   				<artifactId>scala-maven-plugin</artifactId>
   				<version>3.2.0</version>
                 <configuration>
-                    <mainClass>notemaker.client.test.Appl</mainClass>
+                    <mainClass>notemaker.client.Application</mainClass>
                 </configuration>
   			</plugin>
   			
