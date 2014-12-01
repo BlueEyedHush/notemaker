@@ -9,6 +9,7 @@ import java.net.Socket
 object ServerConnection {
   def open() : ServerConnection = {
     val s = new Socket(Configuration.config.getString("serverip"), Configuration.config.getInt("port"))
+
     new ServerConnection(
       new BufferedReader(new InputStreamReader(s.getInputStream)),
       new PrintWriter(s.getOutputStream, true),
