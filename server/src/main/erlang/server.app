@@ -7,7 +7,7 @@
    {registered, ${REGISTERED}},
    {included_applications, []},
    {applications, [kernel, stdlib, sasl]},
-   {env, []},
+   {env, [{port, 36500}]},
    {start_phases, []},
    {mod, {callbackModule, []}}
 ]}.

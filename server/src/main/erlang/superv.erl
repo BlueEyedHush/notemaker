@@ -6,7 +6,7 @@
 %%% @end
 %%% Created : 27. Nov 2014 9:31 AM
 %%%-------------------------------------------------------------------
--module(consolidator).
+-module(superv).
 -behaviour(supervisor).
 -author("blueeyedhush").
 
@@ -17,6 +17,8 @@
 
 init(Arg) ->
   io:format("Supervisor started"),
-  {ok, {{one_for_one, 3, 10}, []}}.
+  {ok, {{one_for_one, 3, 10}, [
+    {gG, {goodGod, spawn, []}, permanent, brutal_kill, worker, dynamic}
+  ]}}.
 
 
