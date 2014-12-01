@@ -13,9 +13,9 @@
         <version>2.2.0</version>
         <extensions>true</extensions>
         <configuration>
-        	<skipDialyzer>true</skipDialyzer>
-            <cookie>notemaker</cookie>
-            <remote>test@54.69.103.93</remote>
+          <skipDialyzer>true</skipDialyzer>
+          <cookie>notemaker</cookie>
+          <remote>test@54.69.103.93</remote>
         </configuration>
       </plugin>
     </plugins>
