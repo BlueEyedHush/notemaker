@@ -3,7 +3,7 @@
 -export([start/2, stop/1]).
 
 start(normal, _Args) ->
-	io:write(appTest).
+	supervisor:start_link(consolidator, []).
 
 stop(_State) ->
 	ok.
