@@ -26,4 +26,4 @@ start() ->
 loop(ListenSocket) ->
   {ok, AS} = gen_tcp:accept(ListenSocket),
   erlang:spawn(guardianAngel, start, [AS]),
-  goodGod:loop().
+  goodGod:loop(ListenSocket).
