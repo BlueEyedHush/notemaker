@@ -8,6 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(guardianAngel).
 -author("blueeyedhush").
+-include("../include/global.hrl").
 
 %% API
 -export([
@@ -15,7 +16,7 @@
 ]).
 
 start(ListenSocket) ->
-  io:format("guardianAngel started\n"),
+  info_msg("guardianAngel started"),
   {ok, AS} = gen_tcp:accept(ListenSocket),
   goodGod ! clientConnected,
   loop(AS).
@@ -24,13 +25,12 @@ loop(AS) ->
   receive
     {tcp, Socket, "{testquery}"} ->
       gen_tcp:send(Socket, "{testresponse}\n"),
-      io:format("Sent {testresponse}\n"),
+      info_msg("Sent {testresponse}"),
       loop(AS);
     {tcp_closed, _} ->
-      io:format("Socket closed, so child is exiting\n"),
+      info_msg("Socket closed, so child is exiting"),
       exit(normal);
     A ->
-      io:format("sth arrived!\n"),
-      io:write(A),
+      info_msg("Child received an unexpected present: ~p", [A]),
       loop(AS)
   end.

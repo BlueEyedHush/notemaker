@@ -8,6 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(superv).
 -behaviour(supervisor).
+-include("../include/global.hrl").
 -author("blueeyedhush").
 
 %% API
@@ -15,8 +16,8 @@
   init/1
 ]).
 
-init(Arg) ->
-  io:format("Supervisor started"),
+init(_Arg) ->
+  info_msg("Supervisor started"),
   {ok, {{one_for_one, 3, 10}, [
     {gG, {goodGod, spawn, []}, permanent, brutal_kill, worker, dynamic}
   ]}}.

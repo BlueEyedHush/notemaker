@@ -8,7 +8,7 @@
 %%%-------------------------------------------------------------------
 -module(goodGod).
 -author("blueeyedhush").
-
+-include("../include/global.hrl").
 %% API
 -export([spawn/0, start/0, loop/1]).
 
@@ -17,19 +17,19 @@ spawn() ->
   {ok, Pid}.
 
 start() ->
-  io:format("gG started\n"),
+  info_msg("gG started"),
   register(goodGod, self()),
   {ok, Port} = application:get_env(port),
   {ok, LS} = gen_tcp:listen(Port, [{active, true}, list]),
-  io:format("Listening started\n"),
+  info_msg("Listening started\n"),
   loop(LS).
 
 loop(ListenSocket) ->
   erlang:spawn(guardianAngel, start, [ListenSocket]),
   receive
     clientConnected ->
-      io:format("Somebody has connected to the client. Spawning a new one\n");
+      info_msg("Somebody has connected to the client. Spawning a new one");
     A ->
-      io:format("Unexpected message has arrived: "), io:write(A), io:format("\n")
+      info_msg("Unexpected message has arrived: ~p", [A])
   end,
   goodGod:loop(ListenSocket).
