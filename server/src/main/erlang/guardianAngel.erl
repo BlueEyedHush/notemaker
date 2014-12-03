@@ -16,7 +16,7 @@
 ]).
 
 start(ListenSocket) ->
-  info_msg("guardianAngel started"),
+  info_msg("New guardianAngel started"),
   {ok, AS} = gen_tcp:accept(ListenSocket),
   goodGod ! clientConnected,
   loop(AS).
