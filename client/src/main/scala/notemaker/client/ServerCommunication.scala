@@ -1,6 +1,6 @@
 package notemaker.client
 
-import java.io.{InputStreamReader, PrintWriter, BufferedWriter, BufferedReader}
+import java.io.{InputStreamReader, PrintWriter, BufferedReader}
 import java.net.Socket
 
 /**
@@ -8,7 +8,7 @@ import java.net.Socket
  */
 object ServerConnection {
   def open() : ServerConnection = {
-    val s = new Socket(Configuration.config.getString("serverip"), Configuration.config.getInt("port"))
+    val s = new Socket(Configuration.config.getString("networking.serverip"), Configuration.config.getInt("networking.port"))
 
     new ServerConnection(
       new BufferedReader(new InputStreamReader(s.getInputStream)),
@@ -18,6 +18,6 @@ object ServerConnection {
   }
 }
 
-class ServerConnection(val incoming : BufferedReader, val outcoming : PrintWriter, private val socket : Socket) {
+class ServerConnection(val incoming : BufferedReader, val outcoming : PrintWriter, val socket : Socket) {
 
 }

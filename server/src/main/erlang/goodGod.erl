@@ -17,13 +17,19 @@ spawn() ->
   {ok, Pid}.
 
 start() ->
-  io:format("gG started!\n"),
+  io:format("gG started\n"),
+  register(goodGod, self()),
   {ok, Port} = application:get_env(port),
-  {ok, LS} = gen_tcp:listen(Port, [{active, true}, binary]),
-  io:format("Listening started \n"),
+  {ok, LS} = gen_tcp:listen(Port, [{active, true}, list]),
+  io:format("Listening started\n"),
   loop(LS).
 
 loop(ListenSocket) ->
-  {ok, AS} = gen_tcp:accept(ListenSocket),
-  erlang:spawn(guardianAngel, start, [AS]),
+  erlang:spawn(guardianAngel, start, [ListenSocket]),
+  receive
+    clientConnected ->
+      io:format("Somebody has connected to the client. Spawning a new one\n");
+    A ->
+      io:format("Unexpected message has arrived: "), io:write(A), io:format("\n")
+  end,
   goodGod:loop(ListenSocket).

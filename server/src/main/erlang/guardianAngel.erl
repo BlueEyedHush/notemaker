@@ -14,17 +14,23 @@
   start/1
 ]).
 
-start(AcceptSocket) ->
-  io:format("guardianAngel started"),
-  loop(AcceptSocket).
+start(ListenSocket) ->
+  io:format("guardianAngel started\n"),
+  {ok, AS} = gen_tcp:accept(ListenSocket),
+  goodGod ! clientConnected,
+  loop(AS).
 
-loop(AC) ->
+loop(AS) ->
   receive
-    {tcp, _Socket, "{testquery}"} ->
-      gen_tcp:send(AC, "{testresponse}"),
-      io:format("Sent {testresponse}"),
-      loop(AC);
-    _ ->
-      io:format("sth arrived!"),
-      loop(AC)
+    {tcp, Socket, "{testquery}"} ->
+      gen_tcp:send(Socket, "{testresponse}\n"),
+      io:format("Sent {testresponse}\n"),
+      loop(AS);
+    {tcp_closed, _} ->
+      io:format("Socket closed, so child is exiting\n"),
+      exit(normal);
+    A ->
+      io:format("sth arrived!\n"),
+      io:write(A),
+      loop(AS)
   end.

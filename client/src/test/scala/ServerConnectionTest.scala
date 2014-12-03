@@ -9,6 +9,7 @@ object ServerConnectionTest {
 
   @BeforeClass
   def create() = {
+    Configuration.load()
     scon = ServerConnection.open()
   }
 }
@@ -17,6 +18,8 @@ class ServerConnectionTest {
   @Test
   def canClientCommunicateWithServer() = {
     ServerConnectionTest.scon.outcoming.print("{testquery}")
+    ServerConnectionTest.scon.outcoming.flush()
+    ServerConnectionTest.scon.socket.setSoTimeout(5000)
     Assert.assertEquals(ServerConnectionTest.scon.incoming.readLine(), "{testresponse}")
   }
 }
