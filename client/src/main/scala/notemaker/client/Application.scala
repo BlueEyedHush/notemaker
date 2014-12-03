@@ -12,5 +12,6 @@ object Application {
   def main(args : Array[String]) = {
     logger.info("Application started")
     Configuration.load()
+
   }
 }
