@@ -7,8 +7,9 @@ import java.net.Socket
  * Created by blueeyedhush on 12/1/14.
  */
 object ServerConnection {
-  def open() : ServerConnection = {
-    val s = new Socket(Configuration.config.getString("networking.serverip"), Configuration.config.getInt("networking.port"))
+  def open(ip: String, port: Int) : ServerConnection = {
+    //val s = new Socket(Configuration.config.getString("networking.serverip"), Configuration.config.getInt("networking.port"))
+    val s = new Socket(ip, port)
 
     new ServerConnection(
       new BufferedReader(new InputStreamReader(s.getInputStream)),
@@ -19,5 +20,11 @@ object ServerConnection {
 }
 
 class ServerConnection(val incoming : BufferedReader, val outcoming : PrintWriter, val socket : Socket) {
+  def close() = {
+    socket.close()
+  }
 
+  def send(message: String) = {
+    outcoming.print(message)
+  }
 }

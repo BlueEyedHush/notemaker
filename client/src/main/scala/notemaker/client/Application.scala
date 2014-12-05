@@ -12,6 +12,11 @@ object Application {
   def main(args : Array[String]) = {
     logger.info("Application started")
     Configuration.load()
+    SessionManager.connect(Configuration.config.getString("networking.serverip"),
+      Configuration.config.getInt("networking.port"))
 
+    NodeManager.createNode(new Node(1445, -4673))
+
+    SessionManager.disconnect()
   }
 }
