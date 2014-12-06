@@ -16,3 +16,5 @@
   info_msg/1,
   info_msg/2
 ]).
+
+-record(message, {attributes}).

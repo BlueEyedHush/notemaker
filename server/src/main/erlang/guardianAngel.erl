@@ -27,6 +27,9 @@ loop(AS) ->
       gen_tcp:send(Socket, "{testresponse}\n"),
       info_msg("Sent {testresponse}"),
       loop(AS);
+    {tcp, Socket, Msg} ->
+      processTcpMessage(Msg, Socket),
+      loop(AS);
     {tcp_closed, _} ->
       info_msg("Socket closed, so child is exiting"),
       exit(normal);
@@ -34,3 +37,7 @@ loop(AS) ->
       info_msg("Child received an unexpected present: ~p", [A]),
       loop(AS)
   end.
+
+
+% called each time non-special message arrives over TCP
+processTcpMessage(Socket, Msg) -> notImpl.
