@@ -12,7 +12,7 @@ object NodeManager {
   def createNode(n : Node) : Unit = {
     nodeList.add(n)
     val mesg : String = new StringBuilder("{nodeCreated x=").append(n.x).append(" y=").append(n.y).toString()
-    SessionManager.connection.send(mesg)
+    NetworkingService.send(mesg)
   }
 
   def getNodes() = {

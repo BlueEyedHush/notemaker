@@ -19,10 +19,19 @@ object Application extends JFXApp {
   val logger : java.util.logging.Logger = Logger.getLogger("Global")
 
   logger.info("Application started")
-  Configuration.load()
-  SessionManager.connect(Configuration.config.getString("networking.serverip"),
-    Configuration.config.getInt("networking.port"))
 
+  /*
+  right now ServerConnection is constructed and belong to JavaFX Application Thread
+  but it is used exclusively from Sender and Receiver
+   */
+
+  Configuration.load()
+  val serverip : String = Configuration.config.getString("networking.serverip")
+  val port : Int = Configuration.config.getInt("networking.port")
+
+  NetworkingService.connect(serverip, port)
+
+  NetworkingService.send("{testquery}")
   NodeManager.createNode(new Node(1445, -4673))
 
   stage = new PrimaryStage {
@@ -42,5 +51,8 @@ object Application extends JFXApp {
     }
   }
 
-  SessionManager.disconnect()
+  @Override
+  override def stopApp() : Unit = {
+    NetworkingService.disconnect()
+  }
 }
