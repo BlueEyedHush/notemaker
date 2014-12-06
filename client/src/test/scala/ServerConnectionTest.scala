@@ -10,7 +10,8 @@ object ServerConnectionTest {
   @BeforeClass
   def create() = {
     Configuration.load()
-    scon = ServerConnection.open()
+    scon = ServerConnection.open(Configuration.config.getString("networking.serverip"),
+    Configuration.config.getInt("networking.port"))
   }
 }
 

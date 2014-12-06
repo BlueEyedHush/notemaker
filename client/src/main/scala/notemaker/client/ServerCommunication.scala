@@ -2,7 +2,8 @@ package notemaker.client
 
 import java.io.{InputStreamReader, PrintWriter, BufferedReader}
 import java.net.{SocketTimeoutException, Socket}
-import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
+import java.util.concurrent.{BlockingQueue, ConcurrentLinkedQueue, TimeUnit, LinkedBlockingQueue}
+import javafx.application.Platform
 
 /**
  * Created by blueeyedhush on 12/1/14.
@@ -41,14 +42,12 @@ these classes does not close the ServerConnection
 to send message just put it in message queue
  */
 
-class Sender(_conn : ServerConnection) extends javafx.concurrent.Task[Unit] {
+class Sender(private val conn : ServerConnection) extends javafx.concurrent.Task[Unit] {
   /* @ToDo:
   adding to this queue will block when the queue is full - that is *highly*
   undesired - UI should not block when queue is full.
    */
   val messageQueue : java.util.concurrent.BlockingQueue[String] = new LinkedBlockingQueue[String]()
-  private val conn : ServerConnection = _conn
-
 
   def call() : Unit = {
     var msg : String = null;
@@ -65,9 +64,9 @@ class Sender(_conn : ServerConnection) extends javafx.concurrent.Task[Unit] {
   }
 }
 
-class Receiver(_conn: ServerConnection) extends javafx.concurrent.Task[Unit] {
-
-  private val conn : ServerConnection = _conn
+class Receiver(private val conn: ServerConnection) extends javafx.concurrent.Task[Unit] {
+  import scala.collection.JavaConversions._
+  val dispatchers = new ConcurrentLinkedQueue[MessageDispatcher]()
 
   def call() : Unit = {
 
@@ -77,11 +76,9 @@ class Receiver(_conn: ServerConnection) extends javafx.concurrent.Task[Unit] {
       try {
         msg = conn.incoming.readLine()
 
-        msg match {
-          case "{testresponse}" => System.out.println("Server responded!")
-          case m => System.out.println("Message received: " + m.toString())
+        for(disp <- dispatchers) {
+          disp.dispatch(msg)
         }
-
       } catch {
         case te : SocketTimeoutException => {}
       }
@@ -118,6 +115,13 @@ object NetworkingService {
 
   def send(msg : String) = {
     senderTask.messageQueue.add(msg)
+  }
+
+  def dispatchers() : ConcurrentLinkedQueue[MessageDispatcher] = {
+    receiverTask match {
+      case null => null
+      case disp => disp.dispatchers
+    }
   }
 
   def disconnect() = {

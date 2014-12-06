@@ -33,7 +33,6 @@ class NotemakerApp extends Application {
 
     NetworkingService.connect(serverip, port)
 
-    NetworkingService.send("{testquery}")
     NodeManager.createNode(new Node(1445, -4673))
   }
 
