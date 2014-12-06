@@ -10,6 +10,8 @@
 -author("blueeyedhush").
 -include("../include/global.hrl").
 
+-import(messageEnCoder, [decode/1]).
+
 %% API
 -export([
   start/1
@@ -28,7 +30,8 @@ loop(AS) ->
       info_msg("Sent {testresponse}"),
       loop(AS);
     {tcp, Socket, Msg} ->
-      processTcpMessage(Msg, Socket),
+      ConvertedMesg = decode(Msg),
+      dispatchMessage(ConvertedMesg, Socket),
       loop(AS);
     {tcp_closed, _} ->
       info_msg("Socket closed, so child is exiting"),
@@ -40,4 +43,4 @@ loop(AS) ->
 
 
 % called each time non-special message arrives over TCP
-processTcpMessage(Socket, Msg) -> notImpl.
+dispatchMessage(Socket, Msg) -> notImpl.

@@ -11,7 +11,7 @@ class Node(var x: Int, var y: Int) {}
 object NodeManager {
   def createNode(n : Node) : Unit = {
     nodeList.add(n)
-    val mesg : String = new StringBuilder("{nodeCreated x=").append(n.x).append(" y=").append(n.y).toString()
+    val mesg : String = new StringBuilder("001 {\"x\" : ).append(n.x).append(, \"y\" : ).append(n.y).append( }").toString()
     NetworkingService.send(mesg)
   }
 

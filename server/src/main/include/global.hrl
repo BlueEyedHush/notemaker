@@ -17,4 +17,5 @@
   info_msg/2
 ]).
 
--record(message, {attributes}).
+% 001
+-record(nodeCreated, {x :: integer(), y :: integer()}).
