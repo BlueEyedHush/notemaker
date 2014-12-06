@@ -98,7 +98,12 @@ object NetworkingService {
   private var receiver : Thread = null
 
   def connect(serverip : String, port : Int) = {
+    /*
+    ServerConnection is constructed and belong to JavaFX Application Thread
+    but it is used exclusively from Sender and Receiver
+     */
     conn = ServerConnection.open(serverip, port)
+
     senderTask = new Sender(conn)
     receiverTask = new Receiver(conn)
 
