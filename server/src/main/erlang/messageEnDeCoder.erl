@@ -19,22 +19,67 @@
 ]).
 
 encode(_) -> notImpl.
-%encode(Record) when is_record(Record, nodeCreated) ->
-%  ["001 " | ?record_to_json(nodeCreated, Record)].
 
 decode(Mesg) ->
-  {MsgId, Json} = package_split(Mesg),
-  case MsgId of
-    1 -> ?json_to_record(nodeCreated, Json)
-  end.
+  Proplist = parse(Mesg),
+  MesgType = remove_all_occurences($", proplists:get_value("mtype", Proplist)),
+  JsonContent = proplists:get_value("content", Proplist),
+  Record =
+    case MesgType of
+      "NodeCreated" -> ?json_to_record(nodeCreated, JsonContent)
+    end.
 
-skip_non_digits([D|R]) when D >= 48, D =< 57 ->
-  [D|R];
-skip_non_digits([_|R]) ->
-  skip_non_digits(R).
+parse(Mesg) ->
+  top_level_rec(Mesg, whatever, whatever, []).
+top_level_rec("{" ++ Rest, Key, value, TupleList) ->
+  {S, R} = extract(${, $}, Rest),
+  top_level_rec(R, whatever, whatever, [{Key, "{" ++ S}|TupleList]);
+top_level_rec("[" ++ Rest, Key, value, TupleList) ->
+  {S, R} = extract($[, $], Rest),
+  top_level_rec(R, whatever, whatever, [{Key, "[" ++ S}|TupleList]);
+top_level_rec("\"" ++ Rest, Key, value, TupleList) ->
+  {S, R} = extract($", $", Rest),
+  top_level_rec(R, whatever, whatever, [{Key, "\""++ S}|TupleList]);
+top_level_rec("\"" ++ Rest, Key, Mode, TupleList) ->
+  {S, R} = extract($", $", Rest),
+  [_|KeyRev] = lists:reverse(S), FinKey = lists:reverse(KeyRev),
+  {_, R1} = skip_up_to($:, R),
+  [_|R2] = R1,
+  top_level_rec(R, FinKey, value, TupleList);
+top_level_rec("}" ++ Rest, Key, Mode, TupleList) ->
+  TupleList;
+top_level_rec("{" ++ Rest, Key, Mode, TupleList) ->
+  top_level_rec(Rest, Key, Mode, TupleList);
+top_level_rec([_|Rest], Key, Mode, TupleList) ->
+  top_level_rec(Rest,Key, Mode, TupleList).
 
-package_split(Msg) ->
-  [S, D, J|Json] = skip_non_digits(Msg),
-  info_msg(S), info_msg(D), info_msg(J),
-  MsgId = (S - 48)*100 + (D - 48)*10 + (J - 48),
-  {MsgId, Json}.
+
+% jeśli wejscie nie bedzie poprawne (czyli liczba otwierajacych o jeden mniejsza niz zamykajacych)
+% spektakularnie sie przewroci
+extract(Op, Cl, Str) ->
+  skip_rec(Op, Cl, 1, Str, []).
+skip_rec(_, _, 0, Rest, Skipped) ->
+  {lists:reverse(Skipped), Rest};
+% istotne jest by jeśli Opening = Closing dopasował do Closing, dlatego pierwsze
+skip_rec(Opening, Closing, Depth, [Next|Rest], Skipped) when Closing == Next ->
+  skip_rec(Opening, Closing, Depth-1, Rest, [Next|Skipped]);
+skip_rec(Opening, Closing, Depth, [Next|Rest], Skipped) when Opening == Next ->
+  skip_rec(Opening, Closing, Depth+1, Rest, [Next|Skipped]);
+skip_rec(Opening, Closing, Depth, [A|Rest], Skipped) ->
+  skip_rec(Opening, Closing, Depth, Rest, [A|Skipped]).
+
+skip_up_to(Char, List) ->
+    skip_up_to_rec(Char, [], List).
+skip_up_to_rec(Char, Skipped, [A|R]) when A /= Char ->
+  skip_up_to_rec(Char, [A|Skipped], R);
+skip_up_to_rec(Char, Skipped, [A|R]) when A == Char ->
+  {lists:reverse(Skipped), [A|R]}.
+
+remove_all_occurences(What, Src) ->
+  remove_all_occurences_rec(What, Src, []).
+remove_all_occurences_rec(What, [], Dest) ->
+  lists:reverse(Dest);
+remove_all_occurences_rec(What, [A|Src], Dest) when A == What ->
+  remove_all_occurences_rec(What, Src, Dest);
+remove_all_occurences_rec(What, [A|Src], Dest) ->
+  remove_all_occurences_rec(What, Src, [A|Dest]).
