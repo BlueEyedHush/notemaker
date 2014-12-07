@@ -18,7 +18,9 @@
   decode/1
 ]).
 
-encode(_) -> notImpl.
+encode(Record) when is_record(Record, nodeCreated) ->
+  Content = ?record_to_json(nodeCreated, Record),
+  "{\"mtype\":\"NodeCreated\",\"content\":" ++ Content ++ "}".
 
 decode(Mesg) ->
   Proplist = parse(Mesg),

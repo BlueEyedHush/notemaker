@@ -12,18 +12,7 @@
 -include("../../main/include/global.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
-isJsonCorrectlyDecodedEncoded_test() ->
-  String = "
-    001 {
-      \"x\" : 120,
-      \"y\" : 60
-    }
-    ",
-  GenericMsg = messageEnDeCoder:decode(String),
-  Pattern = #nodeCreated{x = 120, y = 60},
-  ?assertEqual(Pattern, GenericMsg).
-
-isJsonCorrectlyDecoded1_test() ->
+isJsonCorrectlyDecoded_test() ->
   String = "
     { \"mtype\" : \"NodeCreated\",
       \"content\" : {
@@ -35,6 +24,11 @@ isJsonCorrectlyDecoded1_test() ->
   GenericMsg = messageEnDeCoder:decode1(String),
   Pattern = #nodeCreated{x = 120, y = 60},
   ?assertEqual(Pattern, GenericMsg).
+
+isJsonCorrectlyEncoded_test() ->
+  Record = #nodeCreated{x = 120, y = 60},
+  Json = messageEnDeCoder:encode(Record),
+  ?assertEqual("{\"mtype\":\"NodeCreated\",\"content\":{\"x\"=120,\"y\"=60}}", Json).
 
 isExtractorWorkingWithCurlyBraces_test() ->
   TestString = "abcdef { akrlkj {sdfs}sdfs}sdf}rest",
