@@ -18,6 +18,7 @@
 start(ListenSocket) ->
   info_msg("New guardianAngel started"),
   {ok, AS} = gen_tcp:accept(ListenSocket),
+  inet:setopts(AS, [{nodelay, true}]),
   goodGod:inf_clientConn(),
   loop(AS).
 
@@ -37,6 +38,7 @@ loop(AS) ->
       goodGod:inf_clientDisconn(),
       exit(normal);
     {gG, Mesg} ->
+      info_msg("Received retransmission request from gG"),
       dispatchSrvMessage(AS, Mesg),
       loop(AS);
     A ->
@@ -44,6 +46,12 @@ loop(AS) ->
       loop(AS)
   end.
 
+%WARNING!
+%
+%Messages sent to client must be appended with \n
+
+send_to_client(Socket, Msg) ->
+  gen_tcp:send(Socket, Msg ++ "\n").
 
 % called each time non-special message arrives over TCP
 dispatchTcpMessage(_, Rec) when is_record(Rec, nodeCreated) ->
@@ -51,4 +59,4 @@ dispatchTcpMessage(_, Rec) when is_record(Rec, nodeCreated) ->
 
 dispatchSrvMessage(Socket, Msg) ->
   Em = messageEnDeCoder:encode(Msg),
-  gen_tcp:send(Socket, Em).
+  send_to_client(Socket, Em).

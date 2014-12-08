@@ -17,26 +17,30 @@ spawn() ->
   {ok, Pid}.
 
 start() ->
-  info_msg("gG started"),
+  info_msg("[gG] Started"),
   register(goodGod, self()),
   {ok, Port} = application:get_env(port),
   {ok, LS} = gen_tcp:listen(Port, [{active, true}, list]),
+  %spawn first child
+  erlang:spawn(guardianAngel, start, [LS]),
   loop(LS, []).
 
 loop(ListenSocket, ClientsList) ->
-  erlang:spawn(guardianAngel, start, [ListenSocket]),
   receive
     {clientConnected, PID} ->
+      info_msg("[gG] Client connected"),
+      erlang:spawn(guardianAngel, start, [ListenSocket]),
       goodGod:loop(ListenSocket, [PID|ClientsList]);
     {clientDisconnected, PID} ->
+      info_msg("[gG] Client disconnected"),
       goodGod:loop(ListenSocket, remove_from_list(PID, ClientsList, []));
     {nodeCreated, PID, Descriptor} ->
-      info_msg("New node created with coords: " ++ integer_to_list(Descriptor#nodeCreated.x) ++ " " ++ integer_to_list(Descriptor#nodeCreated.y)),
-      broadcast_to_all_but(Descriptor, PID, ClientsList),
-      %broadcast_to_all(Descriptor, ClientsList),
+      info_msg("[gG] New node created with coords: " ++ integer_to_list(Descriptor#nodeCreated.x) ++ " " ++ integer_to_list(Descriptor#nodeCreated.y)),
+      %broadcast_to_all_but(Descriptor, PID, ClientsList),
+      broadcast_to_all(Descriptor, ClientsList),
       goodGod:loop(ListenSocket, ClientsList);
     A ->
-      info_msg("Unexpected message has arrived: ~p", [A]),
+      info_msg("[gG] Unexpected message has arrived: ~p", [A]),
       goodGod:loop(ListenSocket, ClientsList)
   end.
 
