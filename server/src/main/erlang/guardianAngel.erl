@@ -10,8 +10,6 @@
 -author("blueeyedhush").
 -include("../include/global.hrl").
 
--import(messageEnCoder, [decode/1]).
-
 %% API
 -export([
   start/1
@@ -20,7 +18,7 @@
 start(ListenSocket) ->
   info_msg("New guardianAngel started"),
   {ok, AS} = gen_tcp:accept(ListenSocket),
-  goodGod ! clientConnected,
+  goodGod:inf_clientConn(),
   loop(AS).
 
 loop(AS) ->
@@ -30,12 +28,17 @@ loop(AS) ->
       info_msg("Sent {testresponse}"),
       loop(AS);
     {tcp, Socket, Msg} ->
-      ConvertedMesg = decode(Msg),
-      dispatchMessage(ConvertedMesg, Socket),
+      info_msg("Received TCP message: \n" ++ Msg),
+      ConvertedMesg = messageEnDeCoder:decode(Msg),
+      dispatchTcpMessage(Socket, ConvertedMesg),
       loop(AS);
     {tcp_closed, _} ->
       info_msg("Socket closed, so child is exiting"),
+      goodGod:inf_clientDisconn(),
       exit(normal);
+    {gG, Mesg} ->
+      dispatchSrvMessage(AS, Mesg),
+      loop(AS);
     A ->
       info_msg("Child received an unexpected present: ~p", [A]),
       loop(AS)
@@ -43,4 +46,9 @@ loop(AS) ->
 
 
 % called each time non-special message arrives over TCP
-dispatchMessage(Socket, Msg) -> notImpl.
+dispatchTcpMessage(_, Rec) when is_record(Rec, nodeCreated) ->
+  goodGod:inf_nodeCreated(Rec).
+
+dispatchSrvMessage(Socket, Msg) ->
+  Em = messageEnDeCoder:encode(Msg),
+  gen_tcp:send(Socket, Em).

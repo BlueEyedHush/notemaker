@@ -22,3 +22,9 @@ trait MessageDispatcher {
   }
 }
 
+class LoggingDispatcher extends MessageDispatcher {
+  override def dispatch(msg: String) = {
+    NotemakerApp.logger.info(msg)
+  }
+}
+

@@ -5,12 +5,13 @@ import java.net.{SocketTimeoutException, Socket}
 import java.util.concurrent.{BlockingQueue, ConcurrentLinkedQueue, TimeUnit, LinkedBlockingQueue}
 import javafx.application.Platform
 
+import org.json4s.DefaultFormats
+
 /**
  * Created by blueeyedhush on 12/1/14.
  */
 object ServerConnection {
   def open(ip: String, port: Int) : ServerConnection = {
-    //val s = new Socket(Configuration.config.getString("networking.serverip"), Configuration.config.getInt("networking.port"))
     val s = new Socket(ip, port)
 
     new ServerConnection(
@@ -86,6 +87,9 @@ class Receiver(private val conn: ServerConnection) extends javafx.concurrent.Tas
   }
 }
 
+abstract class MessageContent() {}
+case class GenericMessage(mtype : String, content : MessageContent) {}
+
 object NetworkingService {
 
   private var conn : ServerConnection = null
@@ -113,8 +117,15 @@ object NetworkingService {
     sender.start()
   }
 
-  def send(msg : String) = {
+  def send(msg : String) : Unit = {
     senderTask.messageQueue.add(msg)
+    NotemakerApp.logger.info("Sending: " + msg)
+  }
+
+  def send(msg : GenericMessage) : Unit = {
+    implicit val formats = DefaultFormats
+    val Json : String = org.json4s.native.Serialization.write(msg)
+    this.send(Json)
   }
 
   def dispatchers() : ConcurrentLinkedQueue[MessageDispatcher] = {

@@ -83,5 +83,5 @@ remove_all_occurences_rec(What, [], Dest) ->
   lists:reverse(Dest);
 remove_all_occurences_rec(What, [A|Src], Dest) when A == What ->
   remove_all_occurences_rec(What, Src, Dest);
-remove_all_occurences_rec(What, [A|Src], Dest) ->
+remove_all_occurences_rec(What, [A|Src], Dest) when A /= What->
   remove_all_occurences_rec(What, Src, [A|Dest]).

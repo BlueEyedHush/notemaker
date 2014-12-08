@@ -32,8 +32,10 @@ class NotemakerApp extends Application {
     val port : Int = Configuration.config.getInt("networking.port")
 
     NetworkingService.connect(serverip, port)
+    NetworkingService.dispatchers().add(new LoggingDispatcher)
 
     NodeManager.createNode(new Node(1445, -4673))
+    NodeManager.createNode(new Node(1445, -467))
   }
 
   @Override
