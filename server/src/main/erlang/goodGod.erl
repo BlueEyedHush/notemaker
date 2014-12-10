@@ -19,6 +19,8 @@ spawn() ->
 start() ->
   info_msg("[gG] Started"),
   register(goodGod, self()),
+  process_flag(trap_exit, true),
+
   {ok, Port} = application:get_env(port),
   {ok, LS} = gen_tcp:listen(Port, [{active, true}, list]),
   %spawn first child
@@ -36,18 +38,19 @@ loop(ListenSocket, ClientsList) ->
       goodGod:loop(ListenSocket, remove_from_list(PID, ClientsList, []));
     {nodeCreated, PID, Descriptor} ->
       info_msg("[gG] New node created with coords: " ++ integer_to_list(Descriptor#nodeCreated.x) ++ " " ++ integer_to_list(Descriptor#nodeCreated.y)),
-      %broadcast_to_all_but(Descriptor, PID, ClientsList),
-      broadcast_to_all(Descriptor, ClientsList),
+      broadcast_to_all_but(Descriptor, PID, ClientsList),
+      %broadcast_to_all(Descriptor, ClientsList),
       goodGod:loop(ListenSocket, ClientsList);
+    {'EXIT', _, _} ->
+      terminate(ListenSocket);
     A ->
       info_msg("[gG] Unexpected message has arrived: ~p", [A]),
       goodGod:loop(ListenSocket, ClientsList)
   end.
 
-broadcast_to_all(_, []) -> ok;
-broadcast_to_all(Record, [R|Recipients]) ->
-  R ! {gG, Record},
-  broadcast_to_all(Record, Recipients).
+terminate(ListenSocket) ->
+  info_msg("[gG] Terminating..."),
+  gen_tcp:close(ListenSocket).
 
 broadcast_to_all_but(_, _, []) -> ok;
 broadcast_to_all_but(Record, But, [R|Recipients]) when R == But ->

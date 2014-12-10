@@ -12,7 +12,7 @@ object ServerConnectionTest {
   @BeforeClass
   def create() = {
     Configuration.load()
-    scon = ServerConnection.open(Configuration.config.getString("networking.serverip"),
+    scon = new ServerConnection(Configuration.config.getString("networking.serverip"),
     Configuration.config.getInt("networking.port"))
   }
 }
@@ -20,10 +20,8 @@ object ServerConnectionTest {
 class ServerConnectionTest {
   @Test
   def canClientCommunicateWithServer() = {
-    ServerConnectionTest.scon.outcoming.print("{testquery}")
-    ServerConnectionTest.scon.outcoming.flush()
-    ServerConnectionTest.scon.socket.setSoTimeout(5000)
-    Assert.assertEquals(ServerConnectionTest.scon.incoming.readLine(), "{testresponse}")
+    ServerConnectionTest.scon.send("{\"mtype\":\"Test\", \"content\":{}}")
+    Assert.assertEquals(ServerConnectionTest.scon.receiveWait(5000), "{\"mtype\":\"Test\", \"content\":{}}")
   }
 
   @Test

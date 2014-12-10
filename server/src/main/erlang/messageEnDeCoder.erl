@@ -28,6 +28,7 @@ decode(Mesg) ->
   JsonContent = proplists:get_value("content", Proplist),
   Record =
     case MesgType of
+      "Test" -> test;
       "NodeCreated" -> ?json_to_record(nodeCreated, JsonContent)
     end.
 

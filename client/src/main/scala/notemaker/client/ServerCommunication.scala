@@ -1,7 +1,9 @@
 package notemaker.client
 
-import java.io.{InputStreamReader, PrintWriter, BufferedReader}
+import java.io._
 import java.net.{SocketTimeoutException, Socket}
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
 import java.util.concurrent.{BlockingQueue, ConcurrentLinkedQueue, TimeUnit, LinkedBlockingQueue}
 import javafx.application.Platform
 
@@ -10,26 +12,61 @@ import org.json4s.DefaultFormats
 /**
  * Created by blueeyedhush on 12/1/14.
  */
-object ServerConnection {
-  def open(ip: String, port: Int) : ServerConnection = {
-    val s = new Socket(ip, port)
 
-    new ServerConnection(
-      new BufferedReader(new InputStreamReader(s.getInputStream)),
-      new PrintWriter(s.getOutputStream, true),
-      s
-    )
-  }
-}
+class ServerConnection(ip: String, port: Int) {
+  private val socket : Socket = new Socket(ip, port)
+  private val outcoming : OutputStream = socket.getOutputStream()
+  private val incoming : InputStream = socket.getInputStream()
 
-class ServerConnection(val incoming : BufferedReader, val outcoming : PrintWriter, val socket : Socket) {
   def close() = {
+    incoming.close()
+    outcoming.close()
     socket.close()
   }
 
+  private val bLength = new Array[Byte](4)
+  private val bb = ByteBuffer.allocate(4)
   def send(message: String) = {
-    outcoming.print(message)
+    val bArray : Array[Byte] = message.getBytes(Charset.forName("UTF-8"))
+    val bLength = new Array[Byte](4)
+    bb.putInt(bArray.length)
+    bb.flip()
+    bb.get(bLength)
+    bb.flip() // prepare for next write
+    outcoming.write(bLength)
+    outcoming.write(bArray)
     outcoming.flush()
+  }
+
+  private var byteBuff : Array[Byte] = new Array[Byte](30)
+  private def getByteBuffer(desiredSize : Int) : Array[Byte] = {
+    if (desiredSize > byteBuff.length) {
+      byteBuff = new Array[Byte](desiredSize)
+    }
+    byteBuff
+  }
+
+  private val bLength1 = new Array[Byte](4)
+  private var len : Int = 0
+  private var read : Int = 0
+  def receiveWait(Timeout : Int) : String = {
+    socket.setSoTimeout(Timeout)
+    try {
+      read = 0
+      while(read < 4)
+        read += incoming.read(bLength1, read-1, 4 - read)
+
+      len = ByteBuffer.wrap(bLength1).getInt()
+
+      val readBuffer = getByteBuffer(len)
+      read = 0
+      while(read < len)
+        read += incoming.read(readBuffer, read-1, len - read)
+
+      return new String(readBuffer, 0, len, "UTF-8")
+    } catch {
+      case te : SocketTimeoutException => null
+    }
   }
 }
 
@@ -72,16 +109,13 @@ class Receiver(private val conn: ServerConnection) extends javafx.concurrent.Tas
   def call() : Unit = {
 
     var msg : String = null
-    conn.socket.setSoTimeout(500)
     while(!isCancelled()) {
-      try {
-        msg = conn.incoming.readLine()
+      msg = conn.receiveWait(500)
 
-        for(disp <- dispatchers) {
+      if(msg != null) {
+        for (disp <- dispatchers) {
           disp.dispatch(msg)
         }
-      } catch {
-        case te : SocketTimeoutException => {}
       }
     }
   }
@@ -103,7 +137,7 @@ object NetworkingService {
     ServerConnection is constructed and belong to JavaFX Application Thread
     but it is used exclusively from Sender and Receiver
      */
-    conn = ServerConnection.open(serverip, port)
+    conn = new ServerConnection(serverip, port)
 
     senderTask = new Sender(conn)
     receiverTask = new Receiver(conn)
