@@ -4,15 +4,19 @@ package notemaker.client
  * Created by blueeyedhush on 12/1/14.
  */
 
+import java.beans.EventHandler
 import java.util.logging.Logger
-
 import javafx.application.Application
-import scalafx.geometry.Insets
+import javafx.event
+import javafx.scene.input.MouseEvent
+
+import scalafx.event.ActionEvent
 import scalafx.scene.Scene
-import scalafx.scene.control.ScrollPane
-import scalafx.scene.layout.StackPane
+import scalafx.scene.control.{Button, ScrollPane}
+import scalafx.scene.layout.VBox
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
+import scalafx.Includes._
 
 object NotemakerApp {
   val logger : java.util.logging.Logger = Logger.getLogger("Global")
@@ -41,20 +45,43 @@ class NotemakerApp extends Application {
   @Override
   override def start(stage : javafx.stage.Stage) : Unit = {
     stage.titleProperty().setValue("NoteMaker")
+    stage.setWidth(600)
+    stage.setHeight(400)
 
-    val scene = new Scene() {
-      root = new StackPane {
-        content = new ScrollPane() {
-          padding = Insets(20)
-          pannable = true
-          content = new Rectangle() {
-            width = 200
-            height = 200
-            fill = Color.Yellow
-          }
+    //Sample items:
+    val button = new Button(){
+      id = "clickme"
+      text() = "clicker"
+      onAction = {
+        e: ActionEvent => println(e + "Clicked")
+      }
+    }
+    val rectangle = new Rectangle() {
+      x = 10
+      y = 20
+      width = 200
+      height = 200
+      fill = Color.Yellow
+    }
+
+    //Our inifinty sheet:
+    val scrollPane = new ScrollPane{
+      content = new VBox() {
+//        content = Seq(button, rectangle)
+      }
+      // can't get it done:
+      onMouseClicked() = new event.EventHandler[MouseEvent] {
+        override def handle( event: MouseEvent ): Unit ={
+          if (event.getClickCount == 2) println("double clicked " + event.getX + " " +  event.getY)
         }
       }
     }
+
+
+    val scene = new Scene() {
+      root = scrollPane
+      }
+
 
     stage.setScene(scene)
     stage.show()
