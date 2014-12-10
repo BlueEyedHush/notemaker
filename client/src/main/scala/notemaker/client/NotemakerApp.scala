@@ -10,6 +10,7 @@ import javafx.application.Application
 import javafx.event
 import javafx.scene.input.MouseEvent
 
+import scala.collection.immutable.List
 import scalafx.event.ActionEvent
 import scalafx.scene.Scene
 import scalafx.scene.control.{Button, ScrollPane}
@@ -63,20 +64,35 @@ class NotemakerApp extends Application {
       height = 200
       fill = Color.Yellow
     }
+    var sequence = List()
+
 
     //Our inifinty sheet:
     val scrollPane = new ScrollPane{
       content = new VBox() {
-//        content = Seq(button, rectangle)
+        content = sequence
       }
-      // can't get it done:
       onMouseClicked() = new event.EventHandler[MouseEvent] {
         override def handle( event: MouseEvent ): Unit ={
-          if (event.getClickCount == 2) println("double clicked " + event.getX + " " +  event.getY)
+          if (event.getClickCount == 2) {
+            println("double clicked " + event.getX + " " +  event.getY)
+          }
         }
       }
     }
 
+
+    //this function is alfa
+    def createInfobox(x : Int, y : Int) : Rectangle = {
+      val rect = new Rectangle(){
+        width = 200
+        height = 200
+        this.x = x.toDouble
+        this.y = y.toDouble
+        fill = Color.BLUE
+      }
+      rect
+    }
 
     val scene = new Scene() {
       root = scrollPane
