@@ -27,7 +27,6 @@ start() ->
   FirstChildPID = erlang:spawn(guardianAngel, start, [LS]),
   loop(#state{listenSocket = LS, clientList = [FirstChildPID], nodeList = []}).
 
-%@ToDo: nodeCreatedContent is not needed - nodeCreated messages can carry serialized Node class as its content - less redundancy
 loop(State) ->
   receive
     {clientConnected, PID} ->
@@ -54,7 +53,6 @@ loop(State) ->
 
 terminate(State) ->
   info_msg("[gG] Terminating..."),
-  io:write(exitting),
   gen_tcp:close(State#state.listenSocket).
 
 broadcast_to_all_but(_, _, []) -> ok;
@@ -71,7 +69,6 @@ remove_from_list(El, [A|List], Acc) when El == A ->
 remove_from_list(El, [A|List], Acc) ->
   remove_from_list(El, List, [A|Acc]).
 
-% @ToDo: move communication protocol related pieces to separate functions - to keep everything in one place
 % wrappers for message-based communication with goodGod
 inf_clientConn() ->
   goodGod ! {clientConnected, self()}.
