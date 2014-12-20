@@ -17,6 +17,34 @@ import scala.collection.mutable
  * Created by blueeyedhush on 12/1/14.
  */
 
+/*
+Classes and their responsibilities
+
+ServerConnection
+Low-level TCP communication handling - you give it string, and it sends it.
+You ask for complete message, and you get corresponding string.
+Handling encoding and piecing the message together is ServerConnection's responsibility
+
+Sender/Receiver
+Abstraction built on top of ServerConnection - services meant to be run on separate threads.
+Main purpose of their existence is to provide thread-safe method of processing messages.
+They both input/output Strings
+
+NetworkingService
+The two above use JSON stings - but it is not convenient to manipulate strings directly, therefore
+andther abstraction was introduced: NetworkingService + MessageDispatcher.
+Now you can represent messages using case classes and NetworkingService handle converstion
+case class -> JSON, while the opposite (JSON -> case class) is handled by helper method
+MesssageDispatcher.dispatchMessage
+
+GenericMessage serves as basic type for all messages.
+MessageContent is a base class for all types of contents the message can have.
+
+Word of warning:
+JSON -> case class conversion required type hints for each MessageContent descendant.
+Where to add them? MessageDispatcher.CustomFormat#typeHints
+ */
+
 class ServerConnection(ip: String, port: Int) {
   private val socket : Socket = new Socket(ip, port)
   private val outcoming : OutputStream = socket.getOutputStream()

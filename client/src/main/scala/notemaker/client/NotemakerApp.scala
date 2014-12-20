@@ -20,9 +20,16 @@ import scalafx.scene.shape.Rectangle
 import scalafx.Includes._
 
 object NotemakerApp {
+  /*
+  use this one for logging instead of System.out.prinln
+   */
   val logger : java.util.logging.Logger = Logger.getLogger("Global")
 
   def main(args: Array[String]) = {
+    /*
+    launch requires *class*, not object, therefore we need NotemakerApp class and object, instead of *just* object
+    attempt to pass object to this function (or classOf[object]) would result in an error
+     */
     Application.launch(classOf[NotemakerApp], args : _*)
   }
 }
