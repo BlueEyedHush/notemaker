@@ -81,7 +81,6 @@ class NotemakerApp extends Application {
       }
     }
 
-
     //this function is alfa
     def createInfobox(x : Int, y : Int) : Rectangle = {
       val rect = new Rectangle(){

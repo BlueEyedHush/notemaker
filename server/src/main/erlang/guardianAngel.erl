@@ -17,11 +17,16 @@
 
 start(ListenSocket) ->
   info_msg("New guardianAngel started"),
+  io:format("PID: ~w \n", [self()]),
   process_flag(trap_exit, true),
-  {ok, AS} = gen_tcp:accept(ListenSocket),
-  inet:setopts(AS, [{nodelay, true}, {packet, 4}]),
-  goodGod:inf_clientConn(),
-  loop(AS).
+  case gen_tcp:accept(ListenSocket) of
+    {ok, AS} ->
+      inet:setopts(AS, [{nodelay, true}, {packet, 4}]),
+      goodGod:inf_clientConn(),
+      goodGod:req_content(),
+      loop(AS);
+    {error, _} -> exit(socketFail)
+  end.
 
 loop(AS) ->
   receive
@@ -34,9 +39,9 @@ loop(AS) ->
       info_msg("Socket closed, so child is exiting"),
       goodGod:inf_clientDisconn(),
       exit(normal);
-    {gG, Mesg} ->
-      info_msg("Received retransmission request from gG"),
-      dispatchSrvMessage(AS, Mesg),
+    {gG, Type, Mesg} ->
+      info_msg("Received request from gG"),
+      dispatchSrvMessage(AS, Type, Mesg),
       loop(AS);
     {'EXIT', _, _} ->
       terminate(AS);
@@ -46,22 +51,37 @@ loop(AS) ->
   end.
 
 terminate(AcceptSocket) ->
-  info_msg("Child is begin terminated"),
+  info_msg("Child is being terminated"),
+  io:write(exitting),
   gen_tcp:close(AcceptSocket).
 
-%WARNING!
-%
-%Messages sent to client must be appended with \n
-
 send_to_client(Socket, Msg) ->
-  gen_tcp:send(Socket, Msg ++ "\n").
+  gen_tcp:send(Socket, Msg).
 
 % called each time non-special message arrives over TCP
 dispatchTcpMessage(_, Rec) when is_record(Rec, nodeCreated) ->
   goodGod:inf_nodeCreated(Rec);
 dispatchTcpMessage(Soc, test) ->
-  send_to_client(Soc, "{\"mtype\":\"Test\", \"content\":{}}").
+  send_to_client(Soc, "{\"mtype\":\"Test\",\"content\":{}}").
 
-dispatchSrvMessage(Socket, Msg) ->
-  Em = messageEnDeCoder:encode(Msg),
-  send_to_client(Socket, Em).
+dispatchSrvMessage(Socket, retrans, Msg) ->
+  case Msg of
+    [] -> ok;
+    M ->
+      Em = messageEnDeCoder:encode(M),
+      send_to_client(Socket, Em),
+      ok
+  end;
+dispatchSrvMessage(Socket, content, Cont) ->
+  case Cont of
+    [] -> ok;
+    C ->
+      ContentCreatedList = lists:foldl(
+        fun(X, Acc) ->
+          [#nodeCreated{x = X#node.posX, y = X#node.posY}|Acc]
+        end,
+        [], C),
+      Msg = messageEnDeCoder:encode(ContentCreatedList),
+      send_to_client(Socket, Msg)
+  end.
+

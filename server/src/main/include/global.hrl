@@ -17,5 +17,11 @@
   info_msg/2
 ]).
 
-% 001
--record(nodeCreated, {x :: integer(), y :: integer()}).
+% Do rekordów zawsze muszą być wpisywane binary stringi
+% Nowo utworzone rekordy będą miały stringi w postci binary string
+% Z kolei funkcje dekodujące będą wyrzucać listowe stringi
+-record(state, {listenSocket, clientList, nodeList}).
+-record(node, {posX, posY}).
+
+-record(nodeCreated, {type = <<"NodeCreatedContent">>, x :: integer(), y :: integer()}).
+-record(containerContent, {mlist}).

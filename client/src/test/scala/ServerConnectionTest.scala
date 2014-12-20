@@ -20,8 +20,8 @@ object ServerConnectionTest {
 class ServerConnectionTest {
   @Test
   def canClientCommunicateWithServer() = {
-    ServerConnectionTest.scon.send("{\"mtype\":\"Test\", \"content\":{}}")
-    Assert.assertEquals(ServerConnectionTest.scon.receiveWait(5000), "{\"mtype\":\"Test\", \"content\":{}}")
+    ServerConnectionTest.scon.send("{\"mtype\":\"Test\",\"content\":{}}")
+    Assert.assertEquals(ServerConnectionTest.scon.receiveWait(5000), "{\"mtype\":\"Test\",\"content\":{}}")
   }
 
   @Test

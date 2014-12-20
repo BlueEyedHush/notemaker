@@ -18,10 +18,27 @@
   decode/1
 ]).
 
+% @ToDo: refactor content creation - create genericContent record, and maybe genericList...
 encode(Record) when is_record(Record, nodeCreated) ->
   Content = ?record_to_json(nodeCreated, Record),
-  "{\"mtype\":\"NodeCreated\",\"content\":" ++ Content ++ "}".
+  Encoded = binary_to_list(iolist_to_binary(Content)),
+  "{\"mtype\":\"NodeCreated\",\"content\":" ++ Encoded ++ "}";
+encode([]) ->
+  "{\"mtype\":\"Container\",\"content\":{\"type\":\"ContainerContent\",\"mlist\":[]}}";
+encode(RecordList) when is_list(RecordList) -> %jeszcze sprawdzić, czy jest przynajmniej jednoelementowa
+  %@ToDo: rewrite this after record creation is rewritten
+  %Content = ?list_records_to_json()
+  [First|Rest] = RecordList,
+  FirstEncoded = encode(First) ++ "]", % this will be the last one, we don't want to append comma after it
+  Inner = lists:foldl(
+    fun(X, Acc) ->
+      encode(X) ++ "," ++ Acc
+    end,
+    FirstEncoded, Rest),
+  Content = "[" ++ Inner,
+  "{\"mtype\":\"Container\",\"content\":{\"type\":\"ContainerContent\",\"mlist\":" ++ Content ++ "}}".
 
+%@ToDo: server should be able to decode container messages
 decode(Mesg) ->
   Proplist = parse(Mesg),
   MesgType = remove_all_occurences($", proplists:get_value("mtype", Proplist)),

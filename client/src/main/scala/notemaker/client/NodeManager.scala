@@ -7,7 +7,7 @@ import java.util
  */
 
 class Node(var x: Int, var y: Int) {}
-case class NodeCreatedContent(x : Int, y : Int) extends MessageContent {}
+case class NodeCreatedContent(val x : Int, val y : Int) extends MessageContent {}
 
 object NodeManager {
   def createNode(n : Node) : Unit = {

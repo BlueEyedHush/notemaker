@@ -4,10 +4,14 @@ import java.io._
 import java.net.{SocketTimeoutException, Socket}
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
+import java.util
 import java.util.concurrent.{BlockingQueue, ConcurrentLinkedQueue, TimeUnit, LinkedBlockingQueue}
 import javafx.application.Platform
 
-import org.json4s.DefaultFormats
+import org.json4s.{Formats, ShortTypeHints, DefaultFormats}
+import org.json4s.native.Serialization
+
+import scala.collection.mutable
 
 /**
  * Created by blueeyedhush on 12/1/14.
@@ -54,14 +58,14 @@ class ServerConnection(ip: String, port: Int) {
     try {
       read = 0
       while(read < 4)
-        read += incoming.read(bLength1, read-1, 4 - read)
+        read += incoming.read(bLength1, read, 4 - read)
 
       len = ByteBuffer.wrap(bLength1).getInt()
 
       val readBuffer = getByteBuffer(len)
       read = 0
       while(read < len)
-        read += incoming.read(readBuffer, read-1, len - read)
+        read += incoming.read(readBuffer, read, len - read)
 
       return new String(readBuffer, 0, len, "UTF-8")
     } catch {
@@ -81,7 +85,7 @@ to send message just put it in message queue
  */
 
 class Sender(private val conn : ServerConnection) extends javafx.concurrent.Task[Unit] {
-  /* @ToDo:
+  /* @ToDo: change data structure
   adding to this queue will block when the queue is full - that is *highly*
   undesired - UI should not block when queue is full.
    */
@@ -112,6 +116,10 @@ class Receiver(private val conn: ServerConnection) extends javafx.concurrent.Tas
     while(!isCancelled()) {
       msg = conn.receiveWait(500)
 
+      /*
+      @ToDo: if message is of a container type, here it should be split and passed to dispatchers in pieces
+       */
+
       if(msg != null) {
         for (disp <- dispatchers) {
           disp.dispatch(msg)
@@ -123,6 +131,7 @@ class Receiver(private val conn: ServerConnection) extends javafx.concurrent.Tas
 
 abstract class MessageContent() {}
 case class GenericMessage(mtype : String, content : MessageContent) {}
+case class ContainerContent(mlist : List[GenericMessage]) extends MessageContent
 
 object NetworkingService {
 
