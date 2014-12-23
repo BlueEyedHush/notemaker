@@ -57,6 +57,7 @@ object NodeManager {
 
       mlist.foreach(
         (m : GenericMessage) => {
+          System.out.println("New node created!")
           MessageDispatcher.executeOnJavaFXThread(
             () => {
               NodeManager.registerNode(m.content.asInstanceOf[NodeCreatedContent])
