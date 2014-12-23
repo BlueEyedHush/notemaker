@@ -20,7 +20,7 @@
       <sourceFolder url="file://$MODULE_DIR$/../client/src/test/resources" type="java-test-resource" />
       <excludeFolder url="file://$MODULE_DIR$/../client/target" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Oracle 1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="scala-library" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: junit:junit:4.11" level="project" />
@@ -37,3 +37,4 @@
     <orderEntry type="library" name="Maven: org.scala-lang:scala-compiler:2.10.0" level="project" />
   </component>
 </module>
+
