@@ -56,7 +56,7 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
   }
   onMouseDragged = new event.EventHandler[MouseEvent] {
     override def handle(event: MouseEvent): Unit = {
-      println(tempX.toString + " " + tempY.toString)
+      //println(tempX.toString + " " + tempY.toString)
       x = event.getX.toInt - tempX
       y = event.getY.toInt - tempY
     }
