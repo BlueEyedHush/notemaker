@@ -13,9 +13,13 @@ import scalafx.scene.shape.Rectangle
 object JfxWorksheet extends Pane {
   var sequence: Seq[Rectangle] = Seq()
 
+  NodeManager.nodeListener = (n : Node) => {
+    JfxWorksheet.createNode(n.x.toDouble, n.y.toDouble)
+    ()
+  }
+
   def createNode(x1 : Double, x2 : Double) = {
     val node = new JfxNode(x1, x2)
-
     sequence = sequence :+ node
     content.add(node)
   }
@@ -26,7 +30,7 @@ object JfxWorksheet extends Pane {
         val x = event.getX
         val y = event.getY
         NodeManager.createNode(new Node(x.toInt, y.toInt))
-        createNode(x,y)
+        //createNode(x,y) - callback will be called and from there GUI node representation will be created
         ()
       }
     }

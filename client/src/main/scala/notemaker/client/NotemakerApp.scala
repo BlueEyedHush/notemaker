@@ -68,10 +68,7 @@ class NotemakerApp extends Application {
     stage.setScene(scene)
     stage.show()
 
-    NodeManager.nodeListener = (n : Node) => {
-        JfxWorksheet.createNode(n.x.toDouble, n.y.toDouble)
-        ()
-      }
+
 
     initializeLogic()
   }
