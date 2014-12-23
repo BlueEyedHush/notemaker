@@ -39,7 +39,8 @@ loop(State) ->
     {nodeCreated, PID, Descriptor} ->
       info_msg("[gG] New node created with coords: " ++ integer_to_list(Descriptor#nodeCreated.x) ++ " " ++ integer_to_list(Descriptor#nodeCreated.y)),
       NewState = State#state{nodeList = [#node{posX = Descriptor#nodeCreated.x, posY = Descriptor#nodeCreated.y}|State#state.nodeList]},
-      broadcast_to_all_but(Descriptor, PID, State#state.clientList),
+      % @ToDo: Just a temporary fix, rewrite it
+      broadcast_to_all_but(Descriptor#nodeCreated{type = <<"NodeCreatedContent">>}, PID, State#state.clientList),
       goodGod:loop(NewState);
     {reqContent, PID} ->
       send_content(PID, State),
