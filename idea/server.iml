@@ -6,7 +6,8 @@
     <content url="file://$MODULE_DIR$/../server">
       <excludeFolder url="file://$MODULE_DIR$/../server/target" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Erlang R16B03-1" jdkType="Erlang SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
 </module>
+

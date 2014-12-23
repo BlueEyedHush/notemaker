@@ -85,6 +85,7 @@ class NotemakerApp extends Application {
       }
       onMouseDragged = new event.EventHandler[MouseEvent] {
         override def handle(event: MouseEvent): Unit = {
+          println(tempX.toString + " " + tempY.toString)
           x = event.getX.toInt - tempX
           y = event.getY.toInt - tempY
         }
@@ -120,13 +121,15 @@ class NotemakerApp extends Application {
 
     //Keyhandler - for testing reasons
     val scene = new Scene() {
-      root = scrollPane
-//      onKeyPressed() = new event.EventHandler[KeyEvent] {
-//        override def handle(event: KeyEvent): Unit = {
-//          println(event.getCode.toString)
-//          for(elem <- sequence: Seq[Rectangle]) print(elem.getX.toString())
-//        }
-//      }
+      root = JfxWorksheet
+      /*
+      onKeyPressed() = new event.EventHandler[KeyEvent] {
+        override def handle(event: KeyEvent): Unit = {
+          println(event.getCode.toString)
+          for(elem <- JfxWorksheet.sequence: Seq[Rectangle]) print(elem.getX.toString())
+        }
+      }
+      */
     }
 
     stage.setScene(scene)
@@ -139,3 +142,5 @@ class NotemakerApp extends Application {
     NetworkingService.disconnect()
   }
 }
+
+
