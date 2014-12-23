@@ -8,7 +8,7 @@ import java.beans.EventHandler
 import java.util.logging.Logger
 import javafx.application.Application
 import javafx.event
-import javafx.scene.input.MouseEvent
+import javafx.scene.input.{KeyEvent, MouseEvent}
 
 import com.oracle.jrockit.jfr.InvalidEventDefinitionException
 
@@ -22,6 +22,7 @@ import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
 import scalafx.Includes._
 import scalafx.scene.layout.Pane
+
 
 object NotemakerApp {
   /*
@@ -82,24 +83,30 @@ class NotemakerApp extends Application {
 
     //Our inifinty sheet:
     val scrollPane = new Pane{
+
       onMouseClicked() = new event.EventHandler[MouseEvent] {
         override def handle( event: MouseEvent ): Unit ={
           if (event.getClickCount == 2) {
 //                       println("double clicked " + event.getX + " " +  event.getY)
 //                      NodeManager.createNode(new Node(event.getX.toInt, event.getY.toInt))
-            sequence = sequence :+ createInfobox(event.getX(), event.getY())
-            content.removeAll()
-            for(elem <- sequence: Seq[Rectangle]) content.add(elem)
+            var newBox = createInfobox(event.getX(), event.getY())
+            sequence = sequence :+ newBox
+            content.add(newBox)
           }
         }
       }
     }
 
-
     val scene = new Scene() {
       root = scrollPane
-      }
+      onKeyPressed() = new event.EventHandler[KeyEvent] {
+        override def handle(event: KeyEvent): Unit = {
+          println(event.getCode.toString)
+          for(elem <- sequence: Seq[Rectangle]) print(elem.getX.toString())
 
+        }
+      }
+      }
 
     stage.setScene(scene)
     stage.show()
