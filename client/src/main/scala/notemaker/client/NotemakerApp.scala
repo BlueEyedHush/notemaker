@@ -55,13 +55,15 @@ class NotemakerApp extends Application {
     //Keyhandler - for testing reasons
     val scene = new Scene() {
       root = JfxWorksheet
+      /*
       onKeyPressed() = new event.EventHandler[KeyEvent] {
         override def handle(event: KeyEvent): Unit = {
           println(event.getCode.toString)
           for(elem <- JfxWorksheet.sequence: Seq[Rectangle]) print(elem.getX.toString())
         }
       }
-      }
+      */
+   }
 
     stage.setScene(scene)
     stage.show()
