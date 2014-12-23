@@ -5,6 +5,7 @@ package notemaker.client
  */
 
 import java.beans.EventHandler
+import scalafx.Includes._
 import java.util.logging.Logger
 import javafx.application.Application
 import javafx.event
@@ -16,12 +17,12 @@ import scala.collection.immutable.List
 import scalafx.animation.{Timeline, AnimationTimer}
 import scalafx.event.ActionEvent
 import scalafx.scene.Scene
-import scalafx.scene.control.{Button, ScrollPane}
+import scalafx.scene.control.{TextField, TextArea, Button, ScrollPane}
 import scalafx.scene.layout.VBox
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
-import scalafx.Includes._
 import scalafx.scene.layout.Pane
+import scalafx.scene.text.Text
 
 
 object NotemakerApp {
@@ -67,6 +68,25 @@ class NotemakerApp extends Application {
       x = x1.toInt
       y = y1.toInt
       fill = Color.WhiteSmoke
+      onMousePressed = new event.EventHandler[MouseEvent] {
+        // Rectangle focus handler
+        override def handle(event: MouseEvent): Unit = {
+          fill = Color.Black
+        }
+      }
+      onMouseReleased = new event.EventHandler[MouseEvent] {
+        override def handle(event: MouseEvent): Unit ={
+          fill = Color.WhiteSmoke
+        }
+      }
+      onMouseDragged = new event.EventHandler[MouseEvent] {
+        override def handle(event: MouseEvent): Unit = {
+          val tempX = event.getX.toInt - x.toInt
+          val tempY = event.getY.toInt - y.toInt
+          x = tempX + event.getX.toInt
+          y = tempY + event.getY.toInt
+        }
+      }
     }
     rect
   }
@@ -75,10 +95,10 @@ class NotemakerApp extends Application {
   @Override
   override def start(stage : javafx.stage.Stage) : Unit = {
     stage.titleProperty().setValue("NoteMaker")
-    stage.setWidth(600)
-    stage.setHeight(400)
+    stage.setWidth(800)
+    stage.setHeight(600)
 
-    //end of sample items
+
     var sequence: Seq[Rectangle] = Seq()
 
     //Our inifinty sheet:
@@ -87,23 +107,22 @@ class NotemakerApp extends Application {
       onMouseClicked() = new event.EventHandler[MouseEvent] {
         override def handle( event: MouseEvent ): Unit ={
           if (event.getClickCount == 2) {
-//                       println("double clicked " + event.getX + " " +  event.getY)
-//                      NodeManager.createNode(new Node(event.getX.toInt, event.getY.toInt))
-            var newBox = createInfobox(event.getX(), event.getY())
+            val newBox = createInfobox(event.getX(), event.getY())
             sequence = sequence :+ newBox
+            newBox.onMouseClicked()
             content.add(newBox)
           }
         }
       }
     }
 
+    //Keyhandler - for testing reasons
     val scene = new Scene() {
       root = scrollPane
       onKeyPressed() = new event.EventHandler[KeyEvent] {
         override def handle(event: KeyEvent): Unit = {
           println(event.getCode.toString)
           for(elem <- sequence: Seq[Rectangle]) print(elem.getX.toString())
-
         }
       }
       }
