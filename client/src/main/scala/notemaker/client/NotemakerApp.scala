@@ -63,15 +63,19 @@ class NotemakerApp extends Application {
   def createInfobox(x1 : Double, y1 : Double) : Rectangle = {
     NodeManager.createNode(new Node(x1.toInt, y1.toInt))
     val rect = new Rectangle(){
-      width = 200
-      height = 200
+      width = 50
+      height = 50
       x = x1.toInt
       y = y1.toInt
       fill = Color.WhiteSmoke
+      var tempX: Int = 0
+      var tempY: Int = 0
       onMousePressed = new event.EventHandler[MouseEvent] {
         // Rectangle focus handler
         override def handle(event: MouseEvent): Unit = {
           fill = Color.Black
+          tempX = event.getX.toInt - x.toInt
+          tempY = event.getY.toInt - y.toInt
         }
       }
       onMouseReleased = new event.EventHandler[MouseEvent] {
@@ -81,10 +85,9 @@ class NotemakerApp extends Application {
       }
       onMouseDragged = new event.EventHandler[MouseEvent] {
         override def handle(event: MouseEvent): Unit = {
-          val tempX = event.getX.toInt - x.toInt
-          val tempY = event.getY.toInt - y.toInt
-          x = tempX + event.getX.toInt
-          y = tempY + event.getY.toInt
+          println(tempX.toString + " " + tempY.toString)
+          x = event.getX.toInt - tempX
+          y = event.getY.toInt - tempY
         }
       }
     }
