@@ -1,0 +1,72 @@
+package notemaker.client
+
+import java.util
+
+/**
+ * Created by blueeyedhush on 12/4/14.
+ */
+
+class Node(var x: Int, var y: Int) {}
+case class NodeCreatedContent(val x : Int, val y : Int) extends MessageContent {}
+
+object NodeManager {
+  def init() = {
+    NetworkingService.dispatchers().add(new NodeCreatedDispatcher())
+  }
+
+  def createNode(n : Node) : Unit = {
+    val msgObj = new GenericMessage(mtype = "NodeCreated", content = new NodeCreatedContent(x = n.x, y = n.y))
+    NetworkingService.send(msgObj)
+    this.registerNode(n)
+  }
+
+  def getNodes() = {
+    nodeList
+  }
+
+  var nodeListener : ((Node) => Unit) = null
+  private def invokeListener(n : Node) = {
+    nodeListener match {
+      case null => ()
+      case _ => nodeListener(n)
+    }
+  }
+
+  private def registerNode(nc : NodeCreatedContent) : Unit = {
+    this.registerNode(new Node(x = nc.x, y = nc.y))
+  }
+
+  private def registerNode(n : Node) : Unit = {
+    nodeList.add(n)
+    invokeListener(n)
+    ()
+  }
+
+  private val nodeList = new util.LinkedList[Node]()
+
+  private class NodeCreatedDispatcher extends MessageDispatcher {
+    override def dispatch(msg : String) : Unit = {
+      val mlist = MessageDispatcher.decodeMessage(msg).filter(
+        (m : GenericMessage) => {
+          m.mtype match {
+            case "NodeCreated" => true
+            case _ => false
+          }
+        }
+      )
+
+      mlist.foreach(
+        (m : GenericMessage) => {
+          System.out.println("New node created!")
+          MessageDispatcher.executeOnJavaFXThread(
+            () => {
+              NodeManager.registerNode(m.content.asInstanceOf[NodeCreatedContent])
+            }
+          )
+        }
+      )
+    }
+  }
+}
+
+
