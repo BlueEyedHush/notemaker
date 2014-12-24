@@ -3,6 +3,7 @@ package notemaker.client
 import scalafx.Includes._
 import javafx.event
 import javafx.scene.input.MouseEvent
+import scalafx.scene.effect.{DropShadow, Lighting, BoxBlur, Shadow}
 import scalafx.scene.layout.Pane
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
@@ -23,6 +24,10 @@ object JfxWorksheet extends Pane {
     sequence = sequence :+ node
     content.add(node)
   }
+  def setFocus(jfxNode: JfxNode) = {
+    sequence = sequence.filter(_ != jfxNode)
+    sequence :+ jfxNode
+  }
 
   onMouseClicked() = new event.EventHandler[MouseEvent] {
     override def handle( event: MouseEvent ): Unit ={
@@ -38,8 +43,8 @@ object JfxWorksheet extends Pane {
 }
 
 class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
-  width = 50
-  height = 50
+  width = 100
+  height = 100
   x = x1.toInt
   y = y1.toInt
   fill = Color.WhiteSmoke
@@ -48,14 +53,24 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
   onMousePressed = new event.EventHandler[MouseEvent] {
     // Rectangle focus handler
     override def handle(event: MouseEvent): Unit = {
-      fill = Color.Black
+//      super.setFocus
+//      ^ how to set focus here?
+      fill = Color.LightGrey
       tempX = event.getX.toInt - x.toInt
       tempY = event.getY.toInt - y.toInt
+      effect = new DropShadow() {
+        color = Color.Red
+        height = 54
+        width = 54
+        offsetX = -2
+        offsetY = -2
+      }
     }
   }
   onMouseReleased = new event.EventHandler[MouseEvent] {
     override def handle(event: MouseEvent): Unit ={
       fill = Color.WhiteSmoke
+      effect = null
     }
   }
   onMouseDragged = new event.EventHandler[MouseEvent] {
