@@ -4,25 +4,12 @@ package notemaker.client
  * Created by blueeyedhush on 12/1/14.
  */
 
-import java.beans.EventHandler
-import scalafx.Includes._
 import java.util.logging.Logger
 import javafx.application.Application
-import javafx.event
-import javafx.scene.input.{KeyEvent, MouseEvent}
 
-import com.oracle.jrockit.jfr.InvalidEventDefinitionException
-
-import scala.collection.immutable.List
-import scalafx.animation.{Timeline, AnimationTimer}
-import scalafx.event.ActionEvent
+import scalafx.Includes._
 import scalafx.scene.Scene
-import scalafx.scene.control.{TextField, TextArea, Button, ScrollPane}
-import scalafx.scene.layout.VBox
-import scalafx.scene.paint.Color
-import scalafx.scene.shape.Rectangle
-import scalafx.scene.layout.Pane
-import scalafx.scene.text.Text
+import scalafx.scene.input.KeyEvent
 
 
 object NotemakerApp {
@@ -52,24 +39,13 @@ class NotemakerApp extends Application {
     stage.setWidth(800)
     stage.setHeight(600)
 
-    //Keyhandler - for testing reasons
     val scene = new Scene() {
       root = JfxWorksheet
-      /*
-      onKeyPressed() = new event.EventHandler[KeyEvent] {
-        override def handle(event: KeyEvent): Unit = {
-          println(event.getCode.toString)
-          for(elem <- JfxWorksheet.sequence: Seq[Rectangle]) print(elem.getX.toString())
-        }
-      }
-      */
+      onKeyPressed = (event : KeyEvent) => println(event.getCode.toString)
    }
 
     stage.setScene(scene)
     stage.show()
-
-
-
     initializeLogic()
   }
 
