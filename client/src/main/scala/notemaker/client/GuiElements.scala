@@ -1,9 +1,11 @@
 package notemaker.client
 
+import com.sun.xml.internal.bind.v2.TODO
+
 import scalafx.Includes._
-import javafx.event
-import javafx.scene.input.MouseEvent
+import scalafx.event
 import scalafx.scene.effect.{DropShadow, Lighting, BoxBlur, Shadow}
+import scalafx.scene.input.MouseEvent
 import scalafx.scene.layout.Pane
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
@@ -29,17 +31,15 @@ object JfxWorksheet extends Pane {
     sequence :+ jfxNode
   }
 
-  onMouseClicked() = new event.EventHandler[MouseEvent] {
-    override def handle( event: MouseEvent ): Unit ={
-      if (event.getClickCount == 2) {
-        val x = event.getX
-        val y = event.getY
-        NodeManager.createNode(new Node(x.toInt, y.toInt))
-        //createNode(x,y) - callback will be called and from there GUI node representation will be created
-        ()
-      }
+  onMouseClicked = (event : MouseEvent) => {
+    if(event.getClickCount == 2) {
+      val x = event.getX
+      val y = event.getY
+      NodeManager.createNode(new Node(x.toInt, y.toInt))
+      //createNode(x,y) - callback will be called and from there GUI node representation will be created
     }
   }
+
 }
 
 class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
@@ -50,34 +50,26 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
   fill = Color.WhiteSmoke
   var tempX: Int = 0
   var tempY: Int = 0
-  onMousePressed = new event.EventHandler[MouseEvent] {
-    // Rectangle focus handler
-    override def handle(event: MouseEvent): Unit = {
-//      super.setFocus
-//      ^ how to set focus here?
-      fill = Color.LightGrey
-      tempX = event.getX.toInt - x.toInt
-      tempY = event.getY.toInt - y.toInt
-      effect = new DropShadow() {
-        color = Color.Red
-        height = 54
-        width = 54
-        offsetX = -2
-        offsetY = -2
-      }
+  onMousePressed = (event : MouseEvent) => {
+    //Rectangle focus handler
+    // todo - how to set focus here?
+    fill = Color.LightGrey
+    tempX = event.getX.toInt - x.toInt
+    tempY = event.getY.toInt - y.toInt
+    effect = new DropShadow() {
+      color = Color.Red
+      height = 54
+      width = 54
+      offsetX = -2
+      offsetY = -2
     }
   }
-  onMouseReleased = new event.EventHandler[MouseEvent] {
-    override def handle(event: MouseEvent): Unit ={
+  onMouseReleased = (event : MouseEvent) => {
       fill = Color.WhiteSmoke
       effect = null
-    }
   }
-  onMouseDragged = new event.EventHandler[MouseEvent] {
-    override def handle(event: MouseEvent): Unit = {
-      //println(tempX.toString + " " + tempY.toString)
-      x = event.getX.toInt - tempX
-      y = event.getY.toInt - tempY
-    }
+  onMouseDragged = (event: MouseEvent) => {
+    x = event.getX.toInt - tempX
+    y = event.getY.toInt - tempY
   }
 }
