@@ -1,0 +1,26 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>notemaker</groupId>
+    <artifactId>notemakerSrv</artifactId>
+    <version>0.1</version>
+    <packaging>erlang-otp</packaging>
+    <!-- either erlang-otp or erlang-std -->
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>eu.lindenbaum</groupId>
+                <artifactId>maven-erlang-plugin</artifactId>
+                <version>2.2.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <skipDialyzer>true</skipDialyzer>
+                    <cookie>notemaker</cookie>
+                    <remote>test@54.69.103.93</remote>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
+
