@@ -41,7 +41,10 @@ class NotemakerApp extends Application {
 
     val scene = new Scene() {
       root = JfxWorksheet
-      onKeyPressed = (event : KeyEvent) => println(event.getCode.toString)
+      onKeyPressed = (event : KeyEvent) => {
+        println(event.getCode.toString)
+        if(event.getCode.toString == "DELETE") JfxWorksheet.clearNodes
+      }
    }
 
     stage.setScene(scene)
