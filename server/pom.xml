@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>notemaker</groupId>
     <artifactId>notemakerSrv</artifactId>
-    <version>0.0</version>
+    <version>0.1</version>
     <packaging>erlang-otp</packaging>
     <!-- either erlang-otp or erlang-std -->
 
