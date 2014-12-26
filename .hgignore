@@ -1,4 +1,4 @@
-^idea/.idea/workspace.xml
+^idea/
 ^client/target
 ^server/target
 .*.beam$
