@@ -35,19 +35,22 @@ object JfxWorksheet extends Pane {
   }
   def refreshContent = {
     content.remove(0, sequence.length)
-    for(elem <- sequence) content.add(elem)
+    for(elem <- sequence) {
+      elem.fill = Color.WhiteSmoke
+      content.add(elem)
+    }
   }
   def setFocus(jfxNode: JfxNode) = {
     val temp = sequence.indexOf(jfxNode)
-    println("Element " + temp + ", at seq lenght " + sequence.length)
-    jfxNode.fill = Color.LightGrey
+//    println("Element " + temp + ", at seq lenght " + sequence.length)
     sequence = sequence.filter(!_.equals(jfxNode)) :+ jfxNode
     refreshContent
+    jfxNode.fill = Color.LightGrey
   }
 
   onMouseClicked = (event : MouseEvent) => {
     if(event.getClickCount == 2) {
-      NodeManager.createNode(new Node(event.getX.toInt, event.getY.toInt))
+      NodeManager.createNode(new Node(event.getX.toInt - 25, event.getY.toInt - 25))
       //createNode(x,y) - callback will be called and from there GUI node representation will be created
     }
   }
