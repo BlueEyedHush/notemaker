@@ -4,10 +4,11 @@ import com.sun.xml.internal.bind.v2.TODO
 
 import scalafx.Includes._
 import scalafx.event
+import scalafx.scene.Scene
 import scalafx.scene.control.TextArea
 import scalafx.scene.effect.{DropShadow, Lighting, BoxBlur, Shadow}
 import scalafx.scene.input.{KeyCode, MouseEvent}
-import scalafx.scene.layout.Pane
+import scalafx.scene.layout.{VBox, Pane}
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.text.Text
@@ -95,11 +96,6 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
     offsetX = -1
     offsetY = -1
   }
-//  var text = new Text{
-//    text = "Hello"
-//  }
-//  text.x = this.x.toInt
-//  text.y = this.y.toInt
   onMousePressed = (event : MouseEvent) => {
     JfxWorksheet.setFocus(this)
     savedX = x.toInt
