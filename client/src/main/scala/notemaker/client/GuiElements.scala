@@ -75,6 +75,8 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
   fill = Color.WhiteSmoke
   var tempX: Int = 0
   var tempY: Int = 0
+  var savedX: Int = 0
+  var savedY: Int = 0
   val background = new DropShadow() {
     color = Color.Grey
     width = 52
@@ -84,6 +86,8 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
   }
   onMousePressed = (event : MouseEvent) => {
     JfxWorksheet.setFocus(this)
+    savedX = x.toInt
+    savedY = y.toInt
     tempX = event.getX.toInt - x.toInt
     tempY = event.getY.toInt - y.toInt
     effect = background
@@ -91,11 +95,15 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
   onMouseReleased = (event : MouseEvent) => {
 //      fill = Color.WhiteSmoke
       effect = null
+      if(JfxWorksheet.checkCollisions(this)){
+        x = savedX
+        y = savedY
+      }
   }
   onMouseDragged = (event: MouseEvent) => {
     if(JfxWorksheet.checkCollisions(this))
-      this.background.color = Color.Red else
-      this.background.color = Color.Grey
+      background.color = Color.Red else
+      background.color = Color.Grey
     x = event.getX.toInt - tempX
     y = event.getY.toInt - tempY
   }
