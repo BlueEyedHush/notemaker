@@ -42,10 +42,21 @@ object JfxWorksheet extends Pane {
   }
   def setFocus(jfxNode: JfxNode) = {
     val temp = sequence.indexOf(jfxNode)
-//    println("Element " + temp + ", at seq lenght " + sequence.length)
     sequence = sequence.filter(!_.equals(jfxNode)) :+ jfxNode
     refreshContent
     jfxNode.fill = Color.LightGrey
+  }
+  def checkCollisions(jfxNode: JfxNode): Boolean = {
+    sequence.filter(!_.equals(jfxNode)).map(e => (e.x.toInt < (jfxNode.x.toInt + jfxNode.width.toInt))&&(
+      (e.x.toInt + e.width.toInt) > jfxNode.x.toInt) && (
+      e.y.toInt < (jfxNode.y.toInt + jfxNode.height.toInt) && (
+        (e.y.toInt + e.height.toInt > jfxNode.y.toInt)
+        )
+      )
+    ).reduce(_||_)
+//    for(e <- tempseq) print(e + " ")
+//    println
+//    false
   }
 
   onMouseClicked = (event : MouseEvent) => {
@@ -64,25 +75,27 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
   fill = Color.WhiteSmoke
   var tempX: Int = 0
   var tempY: Int = 0
+  val background = new DropShadow() {
+    color = Color.Grey
+    width = 52
+    height = 52
+    offsetX = -1
+    offsetY = -1
+  }
   onMousePressed = (event : MouseEvent) => {
-    //Rectangle focus handler
     JfxWorksheet.setFocus(this)
-//    fill = Color.LightGrey
     tempX = event.getX.toInt - x.toInt
     tempY = event.getY.toInt - y.toInt
-    effect = new DropShadow() {
-      color = Color.Grey
-      height = 52
-      width = 52
-      offsetX = -1
-      offsetY = -1
-    }
+    effect = background
   }
   onMouseReleased = (event : MouseEvent) => {
 //      fill = Color.WhiteSmoke
       effect = null
   }
   onMouseDragged = (event: MouseEvent) => {
+    if(JfxWorksheet.checkCollisions(this))
+      this.background.color = Color.Red else
+      this.background.color = Color.Grey
     x = event.getX.toInt - tempX
     y = event.getY.toInt - tempY
   }
