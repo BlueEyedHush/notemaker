@@ -4,17 +4,19 @@ import com.sun.xml.internal.bind.v2.TODO
 
 import scalafx.Includes._
 import scalafx.event
+import scalafx.scene.control.TextArea
 import scalafx.scene.effect.{DropShadow, Lighting, BoxBlur, Shadow}
 import scalafx.scene.input.{KeyCode, MouseEvent}
 import scalafx.scene.layout.Pane
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
+import scalafx.scene.text.Text
 
 /**
  * Created by blueeyedhush on 12/23/14.
  */
 object JfxWorksheet extends Pane {
-  var sequence: Seq[Rectangle] = Seq()
+  var sequence: Seq[JfxNode] = Seq()
   content = sequence
 
   NodeManager.nodeListener = (n : Node) => {
@@ -26,7 +28,9 @@ object JfxWorksheet extends Pane {
     println("Deleting nodes")
     content.remove(0, sequence.length)
     sequence = sequence.filter(_ != sequence.last)
-    for(elem <- sequence) content.add(elem)
+    for(elem <- sequence) {
+      content.add(elem)
+    }
   }
 
   def createNode(x1 : Double, x2 : Double) = {
@@ -34,10 +38,11 @@ object JfxWorksheet extends Pane {
     sequence = node +: sequence
     content.add(node)
   }
+
   def refreshContent = {
     content.remove(0, sequence.length)
     for(elem <- sequence) {
-      elem.fill = Color.WhiteSmoke
+      elem.fill = Color.LightGrey
       content.add(elem)
     }
   }
@@ -45,18 +50,22 @@ object JfxWorksheet extends Pane {
     val temp = sequence.indexOf(jfxNode)
     sequence = sequence.filter(!_.equals(jfxNode)) :+ jfxNode
     refreshContent
-    jfxNode.fill = Color.LightGrey
+    jfxNode.fill = Color.Grey
   }
   def checkCollisions(jfxNode: JfxNode): Boolean = {
-    sequence.filter(!_.equals(jfxNode)).map(e => (e.x.toInt < (jfxNode.x.toInt + jfxNode.width.toInt))&&(
-      (e.x.toInt + e.width.toInt) > jfxNode.x.toInt) &&
+    if(sequence.length == 1) false
+    else {
+      sequence.filter(!_.equals(jfxNode)).map(e => (e.x.toInt < (jfxNode.x.toInt + jfxNode.width.toInt)) && (
+        (e.x.toInt + e.width.toInt) > jfxNode.x.toInt) &&
         (e.y.toInt < (jfxNode.y.toInt + jfxNode.height.toInt) &&
-          ((e.y.toInt + e.height.toInt > jfxNode.y.toInt)))).reduce(_||_)
+          ((e.y.toInt + e.height.toInt > jfxNode.y.toInt)))).reduce(_ || _)
+    }
   }
 
   def handleKey(key: KeyCode): Unit ={
     key.toString match{
       case "DELETE" => delNode
+      case _ => ()
     }
 
   }
@@ -74,18 +83,23 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
   height = 50
   x = x1.toInt
   y = y1.toInt
-  fill = Color.WhiteSmoke
+  fill = Color.LightGrey
   var tempX: Int = 0
   var tempY: Int = 0
   var savedX: Int = 0
   var savedY: Int = 0
   val background = new DropShadow() {
-    color = Color.Grey
+    color = Color.LightGrey
     width = 52
     height = 52
     offsetX = -1
     offsetY = -1
   }
+//  var text = new Text{
+//    text = "Hello"
+//  }
+//  text.x = this.x.toInt
+//  text.y = this.y.toInt
   onMousePressed = (event : MouseEvent) => {
     JfxWorksheet.setFocus(this)
     savedX = x.toInt
@@ -95,17 +109,16 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
     effect = background
   }
   onMouseReleased = (event : MouseEvent) => {
-//      fill = Color.WhiteSmoke
-      effect = null
-      if(JfxWorksheet.checkCollisions(this)){
-        x = savedX
-        y = savedY
-      }
+    effect = null
+    if(JfxWorksheet.checkCollisions(this)){
+      x = savedX
+      y = savedY
+    }
   }
   onMouseDragged = (event: MouseEvent) => {
     if(JfxWorksheet.checkCollisions(this))
-      background.color = Color.Red else
-      background.color = Color.Grey
+    background.color = Color.Red else
+    background.color = Color.Grey
     x = event.getX.toInt - tempX
     y = event.getY.toInt - tempY
   }

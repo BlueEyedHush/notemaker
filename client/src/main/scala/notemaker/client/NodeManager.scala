@@ -20,6 +20,14 @@ object NodeManager {
     this.registerNode(n)
   }
 
+  //@TODO checkit please!
+  def removeNode(n: Node) : Unit = {
+//    val msgObj = new GenericMessage(mtype = "NodeDeleted", content = new NodeDeletedContent())
+//    NetworkingService.send(msgObj)
+//    this.unregisterNode(n)
+  }
+  //@TODO end
+
   def getNodes() = {
     nodeList
   }
@@ -41,6 +49,12 @@ object NodeManager {
     invokeListener(n)
     ()
   }
+  //@TODO checkit please!
+  private def unregisterNode(n: Node) : Unit = {
+//    nodeList.remove(n)
+    ()
+  }
+  //@TODO end
 
   private val nodeList = new util.LinkedList[Node]()
 
