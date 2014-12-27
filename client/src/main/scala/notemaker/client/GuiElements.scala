@@ -5,7 +5,7 @@ import com.sun.xml.internal.bind.v2.TODO
 import scalafx.Includes._
 import scalafx.event
 import scalafx.scene.effect.{DropShadow, Lighting, BoxBlur, Shadow}
-import scalafx.scene.input.MouseEvent
+import scalafx.scene.input.{KeyCode, MouseEvent}
 import scalafx.scene.layout.Pane
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
@@ -22,10 +22,11 @@ object JfxWorksheet extends Pane {
     ()
   }
 
-  def clearNodes : Unit = {
+  def delNode : Unit = {
     println("Deleting nodes")
     content.remove(0, sequence.length)
-    sequence = sequence.filter(_ => false)
+    sequence = sequence.filter(_ != sequence.last)
+    for(elem <- sequence) content.add(elem)
   }
 
   def createNode(x1 : Double, x2 : Double) = {
@@ -48,15 +49,16 @@ object JfxWorksheet extends Pane {
   }
   def checkCollisions(jfxNode: JfxNode): Boolean = {
     sequence.filter(!_.equals(jfxNode)).map(e => (e.x.toInt < (jfxNode.x.toInt + jfxNode.width.toInt))&&(
-      (e.x.toInt + e.width.toInt) > jfxNode.x.toInt) && (
-      e.y.toInt < (jfxNode.y.toInt + jfxNode.height.toInt) && (
-        (e.y.toInt + e.height.toInt > jfxNode.y.toInt)
-        )
-      )
-    ).reduce(_||_)
-//    for(e <- tempseq) print(e + " ")
-//    println
-//    false
+      (e.x.toInt + e.width.toInt) > jfxNode.x.toInt) &&
+        (e.y.toInt < (jfxNode.y.toInt + jfxNode.height.toInt) &&
+          ((e.y.toInt + e.height.toInt > jfxNode.y.toInt)))).reduce(_||_)
+  }
+
+  def handleKey(key: KeyCode): Unit ={
+    key.toString match{
+      case "DELETE" => delNode
+    }
+
   }
 
   onMouseClicked = (event : MouseEvent) => {
