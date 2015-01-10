@@ -20,8 +20,10 @@
 % Do rekordów zawsze muszą być wpisywane binary stringi
 % Nowo utworzone rekordy będą miały stringi w postci binary string
 % Z kolei funkcje dekodujące będą wyrzucać listowe stringi
--record(state, {listenSocket, clientList, nodeList}).
+-record(state, {listenSocket, clientList, nodeList, firstFreeId, idPoolSize}).
 -record(node, {posX, posY}).
 
 -record(nodeCreated, {type = <<"NodeCreatedContent">>, x :: integer(), y :: integer()}).
+%@ToDo: Shouldn't this content contain 'type' member?
 -record(containerContent, {mlist}).
+-record(idPoolContent, {type = <<"IdPoolContent">>, first, last}).

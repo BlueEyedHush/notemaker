@@ -61,6 +61,8 @@ send_to_client(Socket, Msg) ->
 % called each time non-special message arrives over TCP
 dispatchTcpMessage(_, Rec) when is_record(Rec, nodeCreated) ->
   goodGod:inf_nodeCreated(Rec);
+dispatchTcpMessage(_, Rec) when is_record(Rec, idPoolContent) ->
+  goodGod:req_id_range();
 dispatchTcpMessage(Soc, test) ->
   send_to_client(Soc, "{\"mtype\":\"Test\",\"content\":{}}").
 
@@ -83,5 +85,8 @@ dispatchSrvMessage(Socket, content, Cont) ->
         [], C),
       Msg = messageEnDeCoder:encode(ContentCreatedList),
       send_to_client(Socket, Msg)
-  end.
+  end;
+dispatchSrvMessage(Socket, idPool, {First,Last}) ->
+  Em = messageEnDeCoder:encode(#idPoolContent{first = First, last = Last}),
+  send_to_client(Socket, Em).
 

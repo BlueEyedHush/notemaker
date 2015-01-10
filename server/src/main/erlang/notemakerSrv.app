@@ -7,7 +7,7 @@
    {registered, ${REGISTERED}},
    {included_applications, []},
    {applications, [kernel, stdlib, sasl]},
-   {env, [{port, 36500}]},
+   {env, [{port, 36500}, {idPoolSize, 10}]},
    {start_phases, []},
    {mod, {callbackModule, []}}
 ]}.

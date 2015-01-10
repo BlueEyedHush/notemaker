@@ -21,7 +21,8 @@ object MessageDispatcher {
 
   protected class CustomFormat extends DefaultFormats {
     override val typeHints = new ShortTypeHints(List(
-      classOf[NodeCreatedContent], classOf[ContainerContent]
+      classOf[NodeCreatedContent], classOf[ContainerContent],
+      classOf[IdPoolContent]
     ))
     override val typeHintFieldName = "type"
   }
@@ -78,6 +79,10 @@ class LoggingDispatcher extends MessageDispatcher {
         case "NodeCreated" => {
           val cont : NodeCreatedContent = m.content.asInstanceOf[NodeCreatedContent]
           NotemakerApp.logger.info(new StringBuilder("Received NodeCreatedContent: x = ").append(cont.x).append(", y = ").append(cont.y).toString())
+        }
+        case "IdPool" => {
+          val cont = m.content.asInstanceOf[IdPoolContent]
+          NotemakerApp.logger.info(new StringBuilder("Received new pool. First: ").append(cont.first).append(", last: ").append(cont.last).toString())
         }
         case _ =>
           NotemakerApp.logger.info("Unknown message received")
