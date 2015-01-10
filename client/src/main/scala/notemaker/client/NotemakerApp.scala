@@ -41,7 +41,10 @@ class NotemakerApp extends Application {
 
     val scene = new Scene() {
       root = JfxWorksheet
-      onKeyPressed = (event : KeyEvent) => JfxWorksheet.handleKey(event.getCode)
+      onKeyPressed = (event : KeyEvent) => {
+        JfxWorksheet.handleKey(event.getCode)
+        if(event.getCode.toString == "A") JfxWorksheet.testIt
+      }
    }
 
     stage.setScene(scene)
