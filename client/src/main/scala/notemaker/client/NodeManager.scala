@@ -6,22 +6,23 @@ import java.util
  * Created by blueeyedhush on 12/4/14.
  */
 
-class Node(var x: Int, var y: Int) {}
-case class NodeCreatedContent(val x : Int, val y : Int) extends MessageContent {}
+class Node(val id : Int, var x: Int, var y: Int) {}
+case class NodeCreatedContent(val id : Int, val x : Int, val y : Int) extends MessageContent {}
 
 object NodeManager {
   def init() = {
     NetworkingService.dispatchers().add(new NodeCreatedDispatcher())
   }
 
-  def createNode(n : Node) : Unit = {
-    val msgObj = new GenericMessage(mtype = "NodeCreated", content = new NodeCreatedContent(x = n.x, y = n.y))
+  def createNode(posX : Int, posY : Int) : Unit = {
+    val n = new Node(id = IdManager.getID(), x = posX, y = posY)
+    val msgObj = new GenericMessage(mtype = "NodeCreated", content = new NodeCreatedContent(id = n.id, x = n.x, y = n.y))
     NetworkingService.send(msgObj)
     this.registerNode(n)
   }
 
   //@TODO checkit please!
-  def removeNode(n: Node) : Unit = {
+  def removeNode(id : Int) : Unit = {
 //    val msgObj = new GenericMessage(mtype = "NodeDeleted", content = new NodeDeletedContent())
 //    NetworkingService.send(msgObj)
 //    this.unregisterNode(n)
@@ -41,7 +42,7 @@ object NodeManager {
   }
 
   private def registerNode(nc : NodeCreatedContent) : Unit = {
-    this.registerNode(new Node(x = nc.x, y = nc.y))
+    this.registerNode(new Node(id = nc.id, x = nc.x, y = nc.y))
   }
 
   private def registerNode(n : Node) : Unit = {

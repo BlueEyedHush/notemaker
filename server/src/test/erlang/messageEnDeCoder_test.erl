@@ -17,20 +17,21 @@ isJsonCorrectlyDecoded_test() ->
     { \"mtype\" : \"NodeCreated\",
       \"content\" : {
         \"type\":\"NodeCreatedContent\",
+        \"id\" : 0,
         \"x\" : 120,
         \"y\" : 60
       }
     }
     ",
   GenericMsg = messageEnDeCoder:decode(String),
-  Pattern = #nodeCreated{x = 120, y = 60},
+  Pattern = #nodeCreated{id = 0, x = 120, y = 60},
   ?assertEqual(Pattern, GenericMsg).
 
 isJsonCorrectlyEncoded_test() ->
-  Record = #nodeCreated{x = 120, y = 60},
+  Record = #nodeCreated{id = 0, x = 120, y = 60},
   Json = messageEnDeCoder:encode(Record),
   io:format("~s\n", [Json]),
-  ?assertEqual("{\"mtype\":\"NodeCreated\",\"content\":{\"type\":\"NodeCreatedContent\",\"x\":120,\"y\":60}}", Json).
+  ?assertEqual("{\"mtype\":\"NodeCreated\",\"content\":{\"type\":\"NodeCreatedContent\",\"id\":0,\"x\":120,\"y\":60}}", Json).
 
 isExtractorWorkingWithCurlyBraces_test() ->
   TestString = "abcdef { akrlkj {sdfs}sdfs}sdf}rest",
@@ -57,10 +58,10 @@ isParsingWorking_test() ->
   ?assertEqual("{content}", proplists:get_value("content", Proplist)).
 
 isContainerMessageEncodedProperly_test() ->
-  TestContainer = [#nodeCreated{x = 3, y = 4}, #nodeCreated{x = 1, y = 2}],
+  TestContainer = [#nodeCreated{id = 1, x = 3, y = 4}, #nodeCreated{id = 0, x = 1, y = 2}],
   Json = messageEnDeCoder:encode(TestContainer),
   io:format("~w\n", [Json]),
-  Pattern = "{\"mtype\":\"Container\",\"content\":{\"type\":\"ContainerContent\",\"mlist\":[{\"mtype\":\"NodeCreated\",\"content\":{\"type\":\"NodeCreatedContent\",\"x\":1,\"y\":2}},{\"mtype\":\"NodeCreated\",\"content\":{\"type\":\"NodeCreatedContent\",\"x\":3,\"y\":4}}]}}",
+  Pattern = "{\"mtype\":\"Container\",\"content\":{\"type\":\"ContainerContent\",\"mlist\":[{\"mtype\":\"NodeCreated\",\"content\":{\"type\":\"NodeCreatedContent\",\"id\":0,\"x\":1,\"y\":2}},{\"mtype\":\"NodeCreated\",\"content\":{\"type\":\"NodeCreatedContent\",\"id\":1,\"x\":3,\"y\":4}}]}}",
   io:format("~w\n", [Pattern]),
   ?assertMatch(Pattern, Json).
 

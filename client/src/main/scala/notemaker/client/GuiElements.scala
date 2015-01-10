@@ -74,7 +74,7 @@ object JfxWorksheet extends Pane {
 
   onMouseClicked = (event : MouseEvent) => {
     if(event.getClickCount == 2) {
-      NodeManager.createNode(new Node(event.getX.toInt - 25, event.getY.toInt - 25))
+      NodeManager.createNode(event.getX.toInt - 25, event.getY.toInt - 25)
       //createNode(x,y) - callback will be called and from there GUI node representation will be created
     }
   }

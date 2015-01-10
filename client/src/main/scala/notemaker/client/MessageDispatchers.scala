@@ -78,7 +78,7 @@ class LoggingDispatcher extends MessageDispatcher {
       m.mtype match {
         case "NodeCreated" => {
           val cont : NodeCreatedContent = m.content.asInstanceOf[NodeCreatedContent]
-          NotemakerApp.logger.info(new StringBuilder("Received NodeCreatedContent: x = ").append(cont.x).append(", y = ").append(cont.y).toString())
+          NotemakerApp.logger.info(new StringBuilder("Received NodeCreatedContent: x = ").append(cont.x).append(", y = ").append(cont.y).append(", id = ").append(cont.id).toString())
         }
         case "IdPool" => {
           val cont = m.content.asInstanceOf[IdPoolContent]

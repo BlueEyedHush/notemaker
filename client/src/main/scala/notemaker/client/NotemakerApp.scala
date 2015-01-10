@@ -33,6 +33,7 @@ object Core {
 object NotemakerApp {
   /*
   use this one for logging instead of System.out.prinln
+  @ToDo: Probably should be moved to Core. And then GUI can use that or create one for itself
    */
   val logger : java.util.logging.Logger = Logger.getLogger("Global")
 

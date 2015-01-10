@@ -80,7 +80,7 @@ dispatchSrvMessage(Socket, content, Cont) ->
     C ->
       ContentCreatedList = lists:foldl(
         fun(X, Acc) ->
-          [#nodeCreated{x = X#node.posX, y = X#node.posY}|Acc]
+          [#nodeCreated{id = X#node.id, x = X#node.posX, y = X#node.posY}|Acc]
         end,
         [], C),
       Msg = messageEnDeCoder:encode(ContentCreatedList),
