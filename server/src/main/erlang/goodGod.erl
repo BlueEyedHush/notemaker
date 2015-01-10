@@ -41,7 +41,7 @@ loop(State) ->
       goodGod:loop(State#state{clientList = remove_from_list(PID, State#state.clientList, [])});
     {nodeCreated, PID, Descriptor} ->
       info_msg("[gG] New node created with coords: " ++ integer_to_list(Descriptor#nodeCreated.x) ++ " " ++ integer_to_list(Descriptor#nodeCreated.y)),
-      NewState = State#state{nodeList = [#node{posX = Descriptor#nodeCreated.x, posY = Descriptor#nodeCreated.y}|State#state.nodeList]},
+      NewState = State#state{nodeList = [#node{id = Descriptor#nodeCreated.id, posX = Descriptor#nodeCreated.x, posY = Descriptor#nodeCreated.y}|State#state.nodeList]},
       % @ToDo: Just a temporary fix, rewrite it
       broadcast_to_all_but(Descriptor#nodeCreated{type = <<"NodeCreatedContent">>}, PID, State#state.clientList),
       goodGod:loop(NewState);

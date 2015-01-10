@@ -134,6 +134,10 @@ class Sender(private val conn : ServerConnection) extends javafx.concurrent.Task
   }
 }
 
+/*
+@ToDo: Rewrite Sender and Receiver using Threads, or at least Runnable/Callable
+ */
+
 class Receiver(private val conn: ServerConnection) extends javafx.concurrent.Task[Unit] {
   import scala.collection.JavaConversions._
   val dispatchers = new ConcurrentLinkedQueue[MessageDispatcher]()
@@ -183,14 +187,29 @@ object NetworkingService {
     sender = new Thread(senderTask)
     sender.setName("NM.Sender")
     sender.setDaemon(true)
-    sender.setUncaughtExceptionHandler(new ExceptionHandler)
+    // the bastard didn't work anyway
+    //sender.setUncaughtExceptionHandler(new ExceptionHandler)
     receiver = new Thread(receiverTask)
     receiver.setName("NM.Receiver")
     receiver.setDaemon(true)
-    receiver.setUncaughtExceptionHandler(new ExceptionHandler)
+    //receiver.setUncaughtExceptionHandler(new ExceptionHandler)
+
+
+    /*
+    @ToDo: Only temporary solution, find out how to use exception handlers properly
+     */
+    val sendWatcher = new ThreadWatcher("Sender exitted", sender)
+    sendWatcher.setDaemon(true)
+    sendWatcher.setName("NM.SendWatcher")
+    val recivWatcher = new ThreadWatcher("Receiver exitted", receiver)
+    recivWatcher.setDaemon(true)
+    recivWatcher.setName("NM.RecivWatcher")
 
     receiver.start()
     sender.start()
+
+    recivWatcher.start()
+    sendWatcher.start()
   }
 
   def send(msg : String) : Unit = {
@@ -212,7 +231,17 @@ object NetworkingService {
   }
 
   def disconnect() = {
+    sender.interrupt()
+    receiver.interrupt()
     conn.close()
+  }
+
+  private class ThreadWatcher(val exitMsg : String, val threadBeingWatched : Thread) extends Thread {
+    override def run() : Unit = {
+      NotemakerApp.logger.info("ThreadWatcher started")
+      threadBeingWatched.join()
+      NotemakerApp.logger.severe(exitMsg)
+    }
   }
 
   private class ExceptionHandler extends Thread.UncaughtExceptionHandler {
