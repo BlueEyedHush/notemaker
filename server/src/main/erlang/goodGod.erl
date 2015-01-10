@@ -10,7 +10,7 @@
 -author("blueeyedhush").
 -include("../include/global.hrl").
 %% API
--export([spawn/0, start/0, loop/1, inf_clientConn/0, inf_nodeCreated/1, inf_clientDisconn/0, req_content/0]).
+-export([spawn/0, start/0, loop/1, inf_clientConn/0, inf_nodeCreated/1, inf_clientDisconn/0, req_content/0, req_id_range/0]).
 
 spawn() ->
   Pid = erlang:spawn_link(?MODULE, start, []),
@@ -25,7 +25,10 @@ start() ->
   io:format("~w \n", [LS]),
   %spawn first child
   FirstChildPID = erlang:spawn(guardianAngel, start, [LS]),
-  loop(#state{listenSocket = LS, clientList = [FirstChildPID], nodeList = []}).
+  register(child, FirstChildPID),
+  {ok, IdPoolSize }= application:get_env(idPoolSize),
+  %io:format("~p \n", [IdPoolSize]),
+  loop(#state{listenSocket = LS, clientList = [FirstChildPID], nodeList = [], firstFreeId = -2147483648, idPoolSize = IdPoolSize}).
 
 loop(State) ->
   receive
@@ -45,6 +48,16 @@ loop(State) ->
     {reqContent, PID} ->
       send_content(PID, State),
       goodGod:loop(State);
+    {reqIdRange, PID} ->
+      if
+        State#state.firstFreeId > 2147483647 - State#state.idPoolSize ->
+          erlang:error(idRangeExhausted);
+        true ->
+          io:format("\nAssigned pool, firstId: ~p\n", [State#state.firstFreeId]),
+          Last = State#state.firstFreeId + State#state.idPoolSize - 1,
+          send_id_pool(PID, State#state.firstFreeId, Last),
+          goodGod:loop(State#state{firstFreeId = Last + 1})
+      end;
     {'EXIT', _, _} ->
       terminate(State);
     A ->
@@ -83,8 +96,14 @@ inf_nodeCreated(Descriptor) ->
 req_content() ->
   goodGod ! {reqContent, self()}.
 
+req_id_range() ->
+  goodGod ! {reqIdRange, self()}.
+
 send_retransmit(PID, Mesg) ->
   PID ! {gG, retrans, Mesg}.
 
 send_content(PID, State) ->
   PID ! {gG, content, State#state.nodeList}.
+
+send_id_pool(PID, First, Last) ->
+  PID ! {gG, idPool, {First, Last}}.

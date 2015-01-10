@@ -149,6 +149,7 @@ class Receiver(private val conn: ServerConnection) extends javafx.concurrent.Tas
        */
 
       if(msg != null) {
+        //dispatchers.forEach((disp : MessageDispatcher) => disp.dispatch(msg))
         for (disp <- dispatchers) {
           disp.dispatch(msg)
         }
@@ -180,9 +181,13 @@ object NetworkingService {
     receiverTask = new Receiver(conn)
 
     sender = new Thread(senderTask)
+    sender.setName("NM.Sender")
     sender.setDaemon(true)
+    sender.setUncaughtExceptionHandler(new ExceptionHandler)
     receiver = new Thread(receiverTask)
+    receiver.setName("NM.Receiver")
     receiver.setDaemon(true)
+    receiver.setUncaughtExceptionHandler(new ExceptionHandler)
 
     receiver.start()
     sender.start()
@@ -208,5 +213,13 @@ object NetworkingService {
 
   def disconnect() = {
     conn.close()
+  }
+
+  private class ExceptionHandler extends Thread.UncaughtExceptionHandler {
+    override def uncaughtException(t : Thread, e: Throwable) : Unit = {
+      val sw = new StringWriter()
+      e.printStackTrace(new PrintWriter(sw))
+      NotemakerApp.logger.severe(sw.toString)
+    }
   }
 }

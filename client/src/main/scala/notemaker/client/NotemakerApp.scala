@@ -11,6 +11,24 @@ import scalafx.Includes._
 import scalafx.scene.Scene
 import scalafx.scene.input.KeyEvent
 
+object Core {
+  def initialize() : Unit = {
+    Configuration.load()
+    val serverip : String = Configuration.config.getString("networking.serverip")
+    val port : Int = Configuration.config.getInt("networking.port")
+
+    NetworkingService.connect(serverip, port)
+    NetworkingService.dispatchers().add(new LoggingDispatcher)
+    IdManager.init()
+    NodeManager.init()
+    ()
+  }
+
+  def cleanup() : Unit = {
+    NetworkingService.disconnect()
+    ()
+  }
+}
 
 object NotemakerApp {
   /*
@@ -46,23 +64,12 @@ class NotemakerApp extends Application {
 
     stage.setScene(scene)
     stage.show()
-    initializeLogic()
-  }
-
-  protected def initializeLogic() : Unit = {
-    Configuration.load()
-    val serverip : String = Configuration.config.getString("networking.serverip")
-    val port : Int = Configuration.config.getInt("networking.port")
-
-    NetworkingService.connect(serverip, port)
-    NetworkingService.dispatchers().add(new LoggingDispatcher)
-    NodeManager.init()
-    ()
+    Core.initialize()
   }
 
   @Override
   override def stop() : Unit = {
-    NetworkingService.disconnect()
+    Core.cleanup()
   }
 }
 

@@ -20,14 +20,17 @@ object MessageDispatcherTest {
 }
 
 class MessageDispatcherTest {
+  /*
+  @ToDo: Asserts fired from different thread won't work. Moreover initialization is improper.
+   */
   @Test
   def isDispatcherFired() : Unit = {
     NetworkingService.dispatchers().add(new MessageDispatcher {
       override def dispatch(msg: String) : Unit = {
-        Assert.assertEquals(msg, "{testresponse}")
+        Assert.assertEquals(msg, "{\"mtype\":\"Test\",\"content\":{}}")
       }
     })
 
-    NetworkingService.send("{testquery}")
+    NetworkingService.send("{\"mtype\":\"Test\",\"content\":{}}")
   }
 }
