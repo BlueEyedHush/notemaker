@@ -18,7 +18,7 @@ import scalafx.scene.text._
  * Created by blueeyedhush on 12/23/14.
  */
 object JfxWorksheet extends Pane {
-  var sequence: Seq[JfxNode] = Seq()
+  var sequence: Seq[InfoBox] = Seq()
   content = sequence
 
   NodeManager.nodeListener = (n : Node) => {
@@ -36,7 +36,7 @@ object JfxWorksheet extends Pane {
   }
 
   def createNode(x1 : Double, x2 : Double) = {
-    val node = new JfxNode(x1, x2)
+    val node = new InfoBox(x1, x2)
     sequence = node +: sequence
     content.add(node)
   }
@@ -44,23 +44,23 @@ object JfxWorksheet extends Pane {
   def refreshContent = {
     content.remove(0, sequence.length)
     for(elem <- sequence) {
-      elem.fill = Color.LightGrey
+      elem.rectangle.fill = Color.LightGrey
       content.add(elem)
     }
   }
-  def setFocus(jfxNode: JfxNode) = {
-    val temp = sequence.indexOf(jfxNode)
-    sequence = sequence.filter(!_.equals(jfxNode)) :+ jfxNode
+  def setFocus(infoBox: InfoBox) = {
+    val temp = sequence.indexOf(infoBox)
+    sequence = sequence.filter(!_.equals(infoBox)) :+ infoBox
     refreshContent
-    jfxNode.fill = Color.Grey
+    infoBox.rectangle.fill = Color.Grey
   }
-  def checkCollisions(jfxNode: JfxNode): Boolean = {
+  def checkCollisions(infoBox: InfoBox): Boolean = { // old JfxNode
     if(sequence.length == 1) false
     else {
-      sequence.filter(!_.equals(jfxNode)).map(e => (e.x.toInt < (jfxNode.x.toInt + jfxNode.width.toInt)) && (
-        (e.x.toInt + e.width.toInt) > jfxNode.x.toInt) &&
-        (e.y.toInt < (jfxNode.y.toInt + jfxNode.height.toInt) &&
-          ((e.y.toInt + e.height.toInt > jfxNode.y.toInt)))).reduce(_ || _)
+      sequence.filter(!_.equals(infoBox)).map(e => (e.getLayoutX.toInt < (infoBox.getLayoutX.toInt + infoBox.rectangle.width.toInt)) && (
+        (e.getLayoutX.toInt + e.rectangle.width.toInt) > infoBox.getLayoutX.toInt) &&
+        (e.getLayoutY.toInt < (infoBox.getLayoutY.toInt + infoBox.rectangle.height.toInt) &&
+          ((e.getLayoutY.toInt + e.rectangle.height.toInt > infoBox.getLayoutY.toInt)))).reduce(_ || _)
     }
   }
 
@@ -79,54 +79,4 @@ object JfxWorksheet extends Pane {
     }
   }
 
-  def testIt = {
-    val node = new InfoBox(50, 50)
-    node.setLayoutX(100)
-    node.setLayoutY(50)
-    this.getChildren.add(node)
-    ()
-  }
-}
-
-
-class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
-  width = 50
-  height = 50
-  x = x1.toInt
-  y = y1.toInt
-  fill = Color.LightGrey
-  var tempX: Int = 0
-  var tempY: Int = 0
-  var savedX: Int = 0
-  var savedY: Int = 0
-  val background = new DropShadow() {
-    color = Color.LightGrey
-    width = 52
-    height = 52
-    offsetX = -1
-    offsetY = -1
-  }
-  onMousePressed = (event: MouseEvent) => {
-    JfxWorksheet.setFocus(this)
-    savedX = x.toInt
-    savedY = y.toInt
-    tempX = event.getX.toInt - x.toInt
-    tempY = event.getY.toInt - y.toInt
-    effect = background
-  }
-  onMouseReleased = (event: MouseEvent) => {
-    effect = null
-    if (JfxWorksheet.checkCollisions(this)) {
-      x = savedX
-      y = savedY
-    }
-  }
-  onMouseDragged = (event: MouseEvent) => {
-    if (JfxWorksheet.checkCollisions(this))
-      background.color = Color.Red
-    else
-      background.color = Color.Grey
-    x = event.getX.toInt - tempX
-    y = event.getY.toInt - tempY
-  }
 }
