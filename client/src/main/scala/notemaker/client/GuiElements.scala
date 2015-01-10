@@ -1,17 +1,18 @@
 package notemaker.client
 
-import com.sun.xml.internal.bind.v2.TODO
+import javafx.geometry.VPos
 
 import scalafx.Includes._
-import scalafx.event
-import scalafx.scene.Scene
-import scalafx.scene.control.TextArea
-import scalafx.scene.effect.{DropShadow, Lighting, BoxBlur, Shadow}
+import scalafx.scene.effect.DropShadow
 import scalafx.scene.input.{KeyCode, MouseEvent}
-import scalafx.scene.layout.{VBox, Pane}
+import scalafx.scene.layout.{Region, Pane}
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
-import scalafx.scene.text.Text
+import scalafx.scene.Group
+import scalafx.scene.text._
+
+
+
 
 /**
  * Created by blueeyedhush on 12/23/14.
@@ -77,7 +78,16 @@ object JfxWorksheet extends Pane {
       //createNode(x,y) - callback will be called and from there GUI node representation will be created
     }
   }
+
+  def testIt = {
+    val node = new InfoBox(50, 50)
+    node.setLayoutX(100)
+    node.setLayoutY(50)
+    this.getChildren.add(node)
+    ()
+  }
 }
+
 
 class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
   width = 50
@@ -96,7 +106,7 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
     offsetX = -1
     offsetY = -1
   }
-  onMousePressed = (event : MouseEvent) => {
+  onMousePressed = (event: MouseEvent) => {
     JfxWorksheet.setFocus(this)
     savedX = x.toInt
     savedY = y.toInt
@@ -104,17 +114,18 @@ class JfxNode(x1 : Double, y1 : Double) extends Rectangle {
     tempY = event.getY.toInt - y.toInt
     effect = background
   }
-  onMouseReleased = (event : MouseEvent) => {
+  onMouseReleased = (event: MouseEvent) => {
     effect = null
-    if(JfxWorksheet.checkCollisions(this)){
+    if (JfxWorksheet.checkCollisions(this)) {
       x = savedX
       y = savedY
     }
   }
   onMouseDragged = (event: MouseEvent) => {
-    if(JfxWorksheet.checkCollisions(this))
-    background.color = Color.Red else
-    background.color = Color.Grey
+    if (JfxWorksheet.checkCollisions(this))
+      background.color = Color.Red
+    else
+      background.color = Color.Grey
     x = event.getX.toInt - tempX
     y = event.getY.toInt - tempY
   }
