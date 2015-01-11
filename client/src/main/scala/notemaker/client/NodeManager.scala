@@ -10,6 +10,7 @@ class Node(val id : Int, var x: Int, var y: Int, var Text : String = "HelloW!") 
 case class NodeCreatedContent(val id : Int, val x : Int, val y : Int) extends MessageContent
 case class NodeMovedContent(val id : Int, val x : Int, val y : Int) extends MessageContent
 case class NodeDeletedContent(val id: Int) extends MessageContent
+case class NodeMessageContent(val id: Int, val Text: String) extends MessageContent
 
 object NodeManager {
   def init() = {
@@ -38,6 +39,13 @@ object NodeManager {
     NetworkingService.send(msgObj)
     registerNodeDeleted(id)
   }
+
+  def sendText(id: Int, message: String) : Unit = {
+    val msgObj = new GenericMessage(mtype = "TextSending", content = new NodeMessageContent(id, message))
+    NetworkingService.send(msgObj)
+    registerNodeMessage(id, message) //#TODO
+  }
+
 
 
   def getNodes() = {
@@ -68,6 +76,14 @@ object NodeManager {
     }
   }
 
+  var nodeUpdatedMessageListener : ((Node) => Unit) = null
+  private def invokeUpdatedTextListener(n : Node) = {
+    nodeUpdatedMessageListener match {
+      case null => ()
+      case _ => nodeUpdatedMessageListener(n)
+    }
+  }
+
   private def registerNode(nc : NodeCreatedContent) : Unit = {
     this.registerNode(new Node(id = nc.id, x = nc.x, y = nc.y))
   }
@@ -77,6 +93,8 @@ object NodeManager {
     invokeListener(n)
     ()
   }
+
+
 
   private def registerNodeMoved(nm: NodeMovedContent) : Unit = {
     NotemakerApp.logger.info("Node moved!")
@@ -127,6 +145,32 @@ object NodeManager {
       invokeNodeDeletedListener(found)
     } else {
       NotemakerApp.logger.warning("Tried to delete node which ID is not known locally!")
+    }
+  }
+
+  private def registerNodeMessage(nid: Int, message: String) : Unit = {
+    NotemakerApp.logger.info("Message sent!")
+
+    var found : Node = null
+    val nlist = nodeList.filter(
+      (n: Node) => n.id match {
+        case i if i == nid => {
+          found = n
+          n.Text = message
+          true
+        }
+        case i if i != nid => {
+          true
+        }
+      }
+    )
+
+    if(found != null) {
+      nodeList = nlist
+
+      invokeUpdatedTextListener(found)
+    } else {
+      NotemakerApp.logger.warning("Tried to update text on node which ID is not known locally!")
     }
   }
 

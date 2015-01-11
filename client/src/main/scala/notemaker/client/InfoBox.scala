@@ -30,9 +30,6 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
     }
 
   def handleClick = JfxWorksheet.setFocus(this)
-//    text.setTextAlignment(TextAlignment.Left)
-//    text.setFill(Color.Black)
-//    text.setTextOrigin(VPos.TOP)
 
   text.setPrefSize(200, 200)
   text.setLayoutY(20)
