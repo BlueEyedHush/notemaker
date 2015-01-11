@@ -9,11 +9,13 @@ import scala.collection.immutable.List
 class Node(val id : Int, var x: Int, var y: Int) {}
 case class NodeCreatedContent(val id : Int, val x : Int, val y : Int) extends MessageContent
 case class NodeMovedContent(val id : Int, val x : Int, val y : Int) extends MessageContent
+case class NodeDeletedContent(val id: Int) extends MessageContent
 
 object NodeManager {
   def init() = {
     NetworkingService.dispatchers().add(new NodeCreatedDispatcher)
     NetworkingService.dispatchers().add(new NodeMovedDispatcher)
+    NetworkingService.dispatchers().add(new NodeDeletedDispatcher)
   }
 
   def createNode(posX : Int, posY : Int) : Unit = {
@@ -30,11 +32,11 @@ object NodeManager {
     registerNodeMoved(cnt)
   }
 
-  //@TODO checkit please!
-  def removeNode(id : Int) : Unit = {
-//    val msgObj = new GenericMessage(mtype = "NodeDeleted", content = new NodeDeletedContent())
-//    NetworkingService.send(msgObj)
-//    this.unregisterNode(n)
+
+  def deleteNode(id : Int) : Unit = {
+    val msgObj = new GenericMessage(mtype = "NodeDeleted", content = new NodeDeletedContent(id))
+    NetworkingService.send(msgObj)
+    registerNodeDeleted(id)
   }
 
 
@@ -55,6 +57,14 @@ object NodeManager {
     nodeMovedListener match {
       case null => ()
       case _ => nodeMovedListener(n)
+    }
+  }
+
+  var nodeDeletedListener : ((Node) => Unit) = null
+  private def invokeNodeDeletedListener(n : Node) = {
+    nodeDeletedListener match {
+      case null => ()
+      case _ => nodeDeletedListener(n)
     }
   }
 
@@ -95,10 +105,29 @@ object NodeManager {
     }
   }
 
-  //@TODO checkit please!
-  private def unregisterNode(n: Node) : Unit = {
-//    nodeList.remove(n)
-    ()
+  private def registerNodeDeleted(nid: Int) : Unit = {
+    NotemakerApp.logger.info("Node deleted!")
+
+    var found : Node = null
+    val nlist = nodeList.filter(
+      (n: Node) => n.id match {
+        case i if i == nid => {
+          found = n
+          false
+        }
+        case i if i != nid => {
+          true
+        }
+      }
+    )
+
+    if(found != null) {
+      nodeList = nlist
+
+      invokeNodeDeletedListener(found)
+    } else {
+      NotemakerApp.logger.warning("Tried to delete node which ID is not known locally!")
+    }
   }
 
   private var nodeList = List[Node]()
@@ -133,6 +162,16 @@ object NodeManager {
       val cont : List[NodeMovedContent] = mlist.map((m: GenericMessage) => m.content.asInstanceOf[NodeMovedContent])
       MessageDispatcher.executeOnJavaFXThread(() => {
         cont.foreach((c: NodeMovedContent) => NodeManager.registerNodeMoved(c)) // invoke logic function
+      })
+    }
+  }
+
+  private class NodeDeletedDispatcher extends MessageDispatcher {
+    override def dispatch(msg : String) : Unit = {
+      val mlist = MessageDispatcher.decodeMessage(msg).filter((m: GenericMessage) => m.mtype == "NodeDeleted")
+      val cont : List[NodeDeletedContent] = mlist.map((m: GenericMessage) => m.content.asInstanceOf[NodeDeletedContent])
+      MessageDispatcher.executeOnJavaFXThread(() => {
+        cont.foreach((c: NodeDeletedContent) => NodeManager.registerNodeDeleted(c.id)) // invoke logic function
       })
     }
   }

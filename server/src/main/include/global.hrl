@@ -28,3 +28,4 @@
 -record(containerContent, {mlist}).
 -record(idPoolContent, {type = <<"IdPoolContent">>, first, last}).
 -record(nodeMoved, {type = <<"NodeMovedContent">>, id, x, y}).
+-record(nodeDeleted, {type = <<"NodeDeletedContent">>, id}).

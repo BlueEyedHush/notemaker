@@ -10,7 +10,7 @@
 -author("blueeyedhush").
 -include("../include/global.hrl").
 %% API
--export([spawn/0, start/0, loop/1, inf_clientConn/0, inf_nodeCreated/1, inf_clientDisconn/0, req_content/0, req_id_range/0, inf_nodeMoved/1]).
+-export([spawn/0, start/0, loop/1, inf_clientConn/0, inf_nodeCreated/1, inf_clientDisconn/0, req_content/0, req_id_range/0, inf_nodeMoved/1, inf_nodeDeleted/1]).
 
 spawn() ->
   Pid = erlang:spawn_link(?MODULE, start, []),
@@ -60,6 +60,22 @@ loop(State) ->
           ModNode = N#node{posX = Descriptor#nodeMoved.x, posY = Descriptor#nodeMoved.y},
           NewState = State#state{nodeList = [ModNode|ListWithoutEl]},
           broadcast_to_all_but(Descriptor#nodeMoved{type = <<"NodeMovedContent">>}, PID, NewState#state.clientList),
+          goodGod:loop(NewState)
+      end;
+    {nodeDel, PID, Descriptor} ->
+      info_msg("[gG] Node wants to be deleted"),
+      Res = find_single_matching_record(
+        fun
+          (P) when P#node.id == Descriptor#nodeDeleted.id -> true;
+          (_) -> false
+        end, State#state.nodeList, []),
+      case Res of
+        {notFound, _} ->
+          warning_msg(<<"Tried to delete node which is not present">>),
+          exit(nodeNotPresent);
+        {_, ListWithoutEl} ->
+          NewState = State#state{nodeList = ListWithoutEl},
+          broadcast_to_all_but(Descriptor#nodeDeleted{type = <<"NodeDeletedContent">>}, PID, NewState#state.clientList),
           goodGod:loop(NewState)
       end;
     {reqContent, PID} ->
@@ -124,6 +140,9 @@ inf_nodeCreated(Descriptor) ->
 
 inf_nodeMoved(Descriptor) ->
   goodGod ! {nodeMoved, self(), Descriptor}.
+
+inf_nodeDeleted(Desc) ->
+  goodGod ! {nodeDel, self(), Desc}.
 
 req_content() ->
   goodGod ! {reqContent, self()}.

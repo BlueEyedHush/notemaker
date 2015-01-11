@@ -19,6 +19,7 @@ import scalafx.scene.text._
  */
 object JfxWorksheet extends Pane {
   var sequence: Seq[InfoBox] = Seq()
+  var focusedIB : InfoBox = null
   content = sequence
 
   NodeManager.nodeListener = (n : Node) => {
@@ -29,11 +30,36 @@ object JfxWorksheet extends Pane {
     JfxWorksheet.moveNode(n.id, n.x.toDouble, n.y.toDouble)
     ()
   }
+  NodeManager.nodeDeletedListener = (n : Node) => {
+    JfxWorksheet.delNode(n.id)
+    ()
+  }
 
-  def delNode : Unit = {
+  case class ExtractionResult(val found : InfoBox, val rest : Seq[InfoBox])
+  def extractInfoboxById(id : Int) = {
+    var found : InfoBox = null
+    var list = sequence.filter(
+      (ib : InfoBox) => ib match {
+        case i if i.node.id == id => {
+          found = i
+          false
+        }
+        case i if i.node.id != id => {
+          true
+        }
+      }
+    )
+
+    new ExtractionResult(found, list)
+  }
+
+  def delNode(nid : Int) : Unit = {
     println("Deleting nodes")
-    content.remove(0, sequence.length)
-    sequence = sequence.filter(_ != sequence.last)
+    val extrRes = extractInfoboxById(nid)
+
+    sequence = extrRes.rest
+
+    content.clear()
     for(elem <- sequence) {
       content.add(elem)
     }
@@ -73,6 +99,7 @@ object JfxWorksheet extends Pane {
     }
   }
   def setFocus(infoBox: InfoBox) = {
+    focusedIB = infoBox
     val temp = sequence.indexOf(infoBox)
     sequence = sequence.filter(!_.equals(infoBox)) :+ infoBox
     refreshContent
@@ -90,7 +117,10 @@ object JfxWorksheet extends Pane {
 
   def handleKey(key: KeyCode): Unit ={
     key.toString match{
-      case "DELETE" => delNode
+      case "DELETE" if focusedIB != null =>
+        delNode(focusedIB.node.id)
+        NodeManager.deleteNode(focusedIB.node.id)
+        focusedIB = null
       case _ => ()
     }
 

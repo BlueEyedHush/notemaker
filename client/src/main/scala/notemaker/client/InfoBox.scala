@@ -57,7 +57,9 @@ class InfoBox(x1:Double, x2: Double) extends Group {
             this.setLayoutY(savedY)
         } else {
           // @ToDo: Refactor
-          NodeManager.moveNode(node.id, this.getLayoutX.toInt, this.getLayoutY.toInt)
+          if(this.getLayoutX.toInt != savedX || this.getLayoutY.toInt != savedY) {
+            NodeManager.moveNode(node.id, this.getLayoutX.toInt, this.getLayoutY.toInt)
+          }
           //JfxWorksheet.moveNode(node.id, this.getLayoutX, this.getLayoutY)
         }
     }
