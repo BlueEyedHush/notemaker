@@ -113,9 +113,10 @@ object JfxWorksheet extends Pane {
   }
   def insertKey(key: String): Unit ={
     println(key)
-  if(key == "A") {
-    focusedIB.setText("Dupacyckidziala")
-  }
+    if(key == "ENTER") {
+//      NodeManager.sendText(focusedIB.node.id, focusedIB.text.getText) //#TODO
+    }
+
     ()
   }
 
@@ -125,7 +126,7 @@ object JfxWorksheet extends Pane {
         delNode(focusedIB.node.id)
         NodeManager.deleteNode(focusedIB.node.id)
         focusedIB = null
-      case a: String => insertKey(a)
+      case a: String if focusedIB != null => insertKey(a)
       case _ => ()
     }
   }
