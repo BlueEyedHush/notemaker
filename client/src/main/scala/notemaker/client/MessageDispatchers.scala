@@ -22,7 +22,7 @@ object MessageDispatcher {
   protected class CustomFormat extends DefaultFormats {
     override val typeHints = new ShortTypeHints(List(
       classOf[NodeCreatedContent], classOf[ContainerContent],
-      classOf[IdPoolContent]
+      classOf[IdPoolContent], classOf[NodeMovedContent]
     ))
     override val typeHintFieldName = "type"
   }
@@ -77,12 +77,16 @@ class LoggingDispatcher extends MessageDispatcher {
     for(m : GenericMessage <- mesgList) {
       m.mtype match {
         case "NodeCreated" => {
-          val cont : NodeCreatedContent = m.content.asInstanceOf[NodeCreatedContent]
+          val cont = m.content.asInstanceOf[NodeCreatedContent]
           NotemakerApp.logger.info(new StringBuilder("Received NodeCreatedContent: x = ").append(cont.x).append(", y = ").append(cont.y).append(", id = ").append(cont.id).toString())
         }
         case "IdPool" => {
           val cont = m.content.asInstanceOf[IdPoolContent]
           NotemakerApp.logger.info(new StringBuilder("Received new pool. First: ").append(cont.first).append(", last: ").append(cont.last).toString())
+        }
+        case "NodeMoved" => {
+          val cont = m.content.asInstanceOf[NodeMovedContent]
+          NotemakerApp.logger.info(new StringBuilder("Received NodeMovedContent: x = ").append(cont.x).append(", y = ").append(cont.y).append(", id = ").append(cont.id).toString())
         }
         case _ =>
           NotemakerApp.logger.info("Unknown message received")

@@ -27,3 +27,4 @@
 %@ToDo: Shouldn't this content contain 'type' member?
 -record(containerContent, {mlist}).
 -record(idPoolContent, {type = <<"IdPoolContent">>, first, last}).
+-record(nodeMoved, {type = <<"NodeMovedContent">>, id, x, y}).

@@ -61,6 +61,8 @@ send_to_client(Socket, Msg) ->
 % called each time non-special message arrives over TCP
 dispatchTcpMessage(_, Rec) when is_record(Rec, nodeCreated) ->
   goodGod:inf_nodeCreated(Rec);
+dispatchTcpMessage(_, Rec) when is_record(Rec, nodeMoved) ->
+  goodGod:inf_nodeMoved(Rec);
 dispatchTcpMessage(_, Rec) when is_record(Rec, idPoolContent) ->
   goodGod:req_id_range();
 dispatchTcpMessage(Soc, test) ->
