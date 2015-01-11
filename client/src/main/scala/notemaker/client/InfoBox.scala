@@ -26,7 +26,10 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
 
     this.text = new TextArea(){
       onKeyPressed = (event : KeyEvent) => JfxWorksheet.handleKey(event.getCode)
+      onMouseClicked = (event: MouseEvent) => handleClick
     }
+
+  def handleClick = JfxWorksheet.setFocus(this)
 //    text.setTextAlignment(TextAlignment.Left)
 //    text.setFill(Color.Black)
 //    text.setTextOrigin(VPos.TOP)
@@ -88,5 +91,8 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
   def move(newX : Double, newY : Double) : Unit = {
     this.setLayoutX(newX)
     this.setLayoutY(newY)
+  }
+  def setText(message: String) : Unit = {
+    this.text.setText(message)
   }
 }

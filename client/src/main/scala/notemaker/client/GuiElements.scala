@@ -91,17 +91,16 @@ object JfxWorksheet extends Pane {
   def refreshContent = {
     content.remove(0, sequence.length)
     for(elem <- sequence) {
-//      elem.rectangle.fill = Color.LightGrey
+      elem.rectangle.fill = Color.LightGrey
       content.add(elem)
     }
   }
   def setFocus(infoBox: InfoBox) = {
     focusedIB = infoBox
-//    infoBox.text.requestFocus()
 //    val temp = sequence.indexOf(infoBox)
     sequence = sequence.filter(!_.equals(infoBox)) :+ infoBox
     refreshContent
-//    infoBox.rectangle.fill = Color.Grey
+    infoBox.rectangle.fill = Color.Grey
   }
   def checkCollisions(infoBox: InfoBox): Boolean = { // old JfxNode
     if(sequence.length == 1) false
@@ -113,7 +112,10 @@ object JfxWorksheet extends Pane {
     }
   }
   def insertKey(key: String): Unit ={
-
+    println(key)
+  if(key == "A") {
+    focusedIB.setText("Dupacyckidziala")
+  }
     ()
   }
 
