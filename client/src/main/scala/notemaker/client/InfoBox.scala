@@ -25,7 +25,7 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
   var savedY: Int = 0
 
     this.text = new TextArea(){
-      onKeyPressed = (event : KeyEvent) => JfxWorksheet.handleKey(event.getCode)
+      onKeyReleased = (event : KeyEvent) => JfxWorksheet.handleKey(event.getCode)
       onMouseClicked = (event: MouseEvent) => handleClick
     }
 
