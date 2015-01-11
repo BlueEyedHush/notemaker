@@ -1,7 +1,7 @@
 package notemaker.client
 
 import java.io._
-import java.net.{SocketTimeoutException, Socket}
+import java.net.{SocketException, SocketTimeoutException, Socket}
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.util
@@ -112,24 +112,23 @@ these classes does not close the ServerConnection
 to send message just put it in message queue
  */
 
-class Sender(private val conn : ServerConnection) extends javafx.concurrent.Task[Unit] {
+class Sender(private val conn : ServerConnection) extends Runnable {
   /* @ToDo: change data structure
   adding to this queue will block when the queue is full - that is *highly*
   undesired - UI should not block when queue is full.
    */
-  val messageQueue : java.util.concurrent.BlockingQueue[String] = new LinkedBlockingQueue[String]()
+  val messageQueue : java.util.concurrent .BlockingQueue[String] = new LinkedBlockingQueue[String]()
 
-  def call() : Unit = {
-    var msg : String = null;
-
-    while(!isCancelled()) {
-      try {
+  override def run() : Unit = {
+    try {
+      var msg : String = null;
+      while(!Thread.interrupted()) {
         msg = messageQueue.poll(100, TimeUnit.MILLISECONDS)
-        if(msg != null)
+        if (msg != null)
           conn.send(msg)
-      } catch {
-        case ie : InterruptedException => {}
       }
+    } catch {
+      case ie : InterruptedException => {}
     }
   }
 }
@@ -138,27 +137,31 @@ class Sender(private val conn : ServerConnection) extends javafx.concurrent.Task
 @ToDo: Rewrite Sender and Receiver using Threads, or at least Runnable/Callable
  */
 
-class Receiver(private val conn: ServerConnection) extends javafx.concurrent.Task[Unit] {
+class Receiver(private val conn: ServerConnection) extends Runnable {
   import scala.collection.JavaConversions._
   val dispatchers = new ConcurrentLinkedQueue[MessageDispatcher]()
 
-  def call() : Unit = {
+  override def run() : Unit = {
+    try {
+      var msg : String = null
+      while(!Thread.interrupted()) {
+        msg = conn.receiveWait(500)
 
-    var msg : String = null
-    while(!isCancelled()) {
-      msg = conn.receiveWait(500)
+        // @ToDo: if message is of a container type, here it should be split and passed to dispatchers in pieces
 
-      /*
-      @ToDo: if message is of a container type, here it should be split and passed to dispatchers in pieces
-       */
-
-      if(msg != null) {
-        //dispatchers.forEach((disp : MessageDispatcher) => disp.dispatch(msg))
-        for (disp <- dispatchers) {
-          disp.dispatch(msg)
+        if (msg != null) {
+          for (disp <- dispatchers) {
+            disp.dispatch(msg)
+          }
         }
       }
+    } catch {
+      case ie : InterruptedException => {}
+      case se : SocketException => {
+        NotemakerApp.logger.warning("SocketException in Receiver. This happens while quitting. But if you see this message in any other place, start worrying.\nMessage:\n" + se.toString)
+      }
     }
+
   }
 }
 
@@ -187,29 +190,14 @@ object NetworkingService {
     sender = new Thread(senderTask)
     sender.setName("NM.Sender")
     sender.setDaemon(true)
-    // the bastard didn't work anyway
     //sender.setUncaughtExceptionHandler(new ExceptionHandler)
     receiver = new Thread(receiverTask)
     receiver.setName("NM.Receiver")
     receiver.setDaemon(true)
     //receiver.setUncaughtExceptionHandler(new ExceptionHandler)
 
-
-    /*
-    @ToDo: Only temporary solution, find out how to use exception handlers properly
-     */
-    val sendWatcher = new ThreadWatcher("Sender exitted", sender)
-    sendWatcher.setDaemon(true)
-    sendWatcher.setName("NM.SendWatcher")
-    val recivWatcher = new ThreadWatcher("Receiver exitted", receiver)
-    recivWatcher.setDaemon(true)
-    recivWatcher.setName("NM.RecivWatcher")
-
     receiver.start()
     sender.start()
-
-    recivWatcher.start()
-    sendWatcher.start()
   }
 
   def send(msg : String) : Unit = {
@@ -244,6 +232,7 @@ object NetworkingService {
     }
   }
 
+  /*
   private class ExceptionHandler extends Thread.UncaughtExceptionHandler {
     override def uncaughtException(t : Thread, e: Throwable) : Unit = {
       val sw = new StringWriter()
@@ -251,4 +240,5 @@ object NetworkingService {
       NotemakerApp.logger.severe(sw.toString)
     }
   }
+  */
 }
