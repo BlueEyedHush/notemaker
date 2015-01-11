@@ -3,8 +3,9 @@ package notemaker.client
 import javafx.geometry.VPos
 import scalafx.Includes._
 import scalafx.scene.Group
+import scalafx.scene.control.TextArea
 import scalafx.scene.effect.DropShadow
-import scalafx.scene.input.MouseEvent
+import scalafx.scene.input.{KeyEvent, MouseEvent}
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.text.{TextAlignment, Text}
@@ -13,7 +14,7 @@ import scalafx.scene.text.{TextAlignment, Text}
  * Created by kuba on 10.01.15.
  */
 class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
-  var napis : Text = null
+  var text : TextArea = null
   var rectangle : Rectangle = null
   this.setLayoutX(x1.toInt)
   this.setLayoutY(x2.toInt)
@@ -22,26 +23,35 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
   var tempY: Int = 0
   var savedX: Int = 0
   var savedY: Int = 0
-  val background = new DropShadow(){
-      color = Color.LightGrey
-      width = 52
-      height = 52
-      offsetX = -1
-      offsetY = -1
-  }
 
-  this.napis = new Text(node.Text)
-  napis.setTextAlignment(TextAlignment.Left)
-  napis.setFill(Color.Black)
-  napis.setTextOrigin(VPos.TOP)
+    this.text = new TextArea(){
+      onKeyPressed = (event : KeyEvent) => JfxWorksheet.handleKey(event.getCode)
+    }
+//    text.setTextAlignment(TextAlignment.Left)
+//    text.setFill(Color.Black)
+//    text.setTextOrigin(VPos.TOP)
 
-  this.rectangle = new Rectangle(){
-  }
-  rectangle.width = 50
-  rectangle.height = 50
-  rectangle.setFill(Color.LightGrey)
+  text.setPrefSize(200, 200)
+  text.setLayoutY(20)
+  text.setMaxWidth(600)
+  text.setWrapText(true)
+  text.setStyle("-fx-border-color: transparent; -fx-border-width: 0; "
+    + "-fx-border-radius: 0; -fx-focus-color: transparent;");
 
-  this.getChildren().addAll(rectangle, napis)
+    this.rectangle = new Rectangle(){
+    }
+    rectangle.width = text.getPrefWidth
+    rectangle.height = text.getPrefHeight + 20
+    rectangle.setFill(Color.LightGrey)
+    val background = new DropShadow(){
+        color = Color.LightGrey
+        width = rectangle.getWidth + 2
+        height = rectangle.getHeight + 2
+        offsetX = -1
+        offsetY = -1
+    }
+
+  this.getChildren().addAll(rectangle, text)
 
   onMousePressed = (event : MouseEvent) => {
       JfxWorksheet.setFocus(this)
@@ -49,10 +59,10 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
       savedY = this.getLayoutY.toInt
       tempX = event.getX.toInt
       tempY = event.getY.toInt
-      rectangle.effect = background
+      text.effect = background
   }
   onMouseReleased = (event : MouseEvent) => {
-      rectangle.effect = null
+      text.effect = null
       if (JfxWorksheet.checkCollisions(this)) {
           this.setLayoutX(savedX)
           this.setLayoutY(savedY)
@@ -70,6 +80,7 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
           background.color = Color.Grey
       this.setLayoutX(this.getLayoutX.toInt + event.getX.toInt - tempX)
       this.setLayoutY(this.getLayoutY.toInt + event.getY.toInt - tempY)
+//      NodeManager.moveNode(node.id, this.getLayoutX.toInt, this.getLayoutY.toInt)
   }
 
   /* Member functions */
