@@ -35,6 +35,11 @@ encode(Record) when is_record(Record, nodeDeleted) ->
   Content = ?record_to_json(nodeDeleted, Record),
   Encoded = binary_to_list(iolist_to_binary(Content)),
   "{\"mtype\":\"NodeDeleted\",\"content\":" ++ Encoded ++ "}";
+encode(Record) when is_record(Record, textSending) ->
+  Content = ?record_to_json(textSending, Record),
+  Encoded = binary_to_list(iolist_to_binary(Content)),
+  "{\"mtype\":\"TextSending\",\"content\":" ++ Encoded ++ "}";
+
 encode([]) ->
   "{\"mtype\":\"Container\",\"content\":{\"type\":\"ContainerContent\",\"mlist\":[]}}";
 encode(RecordList) when is_list(RecordList) -> %jeszcze sprawdzić, czy jest przynajmniej jednoelementowa
@@ -61,7 +66,8 @@ decode(Mesg) ->
       "NodeCreated" -> ?json_to_record(nodeCreated, JsonContent);
       "IdPool" -> ?json_to_record(idPoolContent, JsonContent);
       "NodeMoved" -> ?json_to_record(nodeMoved, JsonContent);
-      "NodeDeleted" -> ?json_to_record(nodeDeleted, JsonContent)
+      "NodeDeleted" -> ?json_to_record(nodeDeleted, JsonContent);
+      "TextSending" -> ?json_to_record(textSending, JsonContent)
     end.
 
 parse(Mesg) ->
