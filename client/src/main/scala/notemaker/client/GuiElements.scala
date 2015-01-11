@@ -66,8 +66,7 @@ object JfxWorksheet extends Pane {
   }
 
   def createNode(n : Node, x1 : Double, x2 : Double) = {
-    val node = new InfoBox(x1, x2)
-    node.node = n
+    val node = new InfoBox(n, x1, x2)
     sequence = node +: sequence
     content.add(node)
   }
