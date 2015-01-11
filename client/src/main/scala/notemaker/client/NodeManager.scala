@@ -10,13 +10,14 @@ class Node(val id : Int, var x: Int, var y: Int, var Text : String = "HelloW!") 
 case class NodeCreatedContent(val id : Int, val x : Int, val y : Int) extends MessageContent
 case class NodeMovedContent(val id : Int, val x : Int, val y : Int) extends MessageContent
 case class NodeDeletedContent(val id: Int) extends MessageContent
-case class NodeMessageContent(val id: Int, val Text: String) extends MessageContent
+case class NodeMessageContent(val id: Int, val text: String) extends MessageContent
 
 object NodeManager {
   def init() = {
     NetworkingService.dispatchers().add(new NodeCreatedDispatcher)
     NetworkingService.dispatchers().add(new NodeMovedDispatcher)
     NetworkingService.dispatchers().add(new NodeDeletedDispatcher)
+    NetworkingService.dispatchers().add(new NodeMessageDispatcher)
   }
 
   def createNode(posX : Int, posY : Int) : Unit = {
@@ -43,7 +44,7 @@ object NodeManager {
   def sendText(id: Int, message: String) : Unit = {
     val msgObj = new GenericMessage(mtype = "TextSending", content = new NodeMessageContent(id, message))
     NetworkingService.send(msgObj)
-    registerNodeMessage(id, message) //#TODO
+    registerNodeMessage(id, message, false) //#TODO
   }
 
 
@@ -148,7 +149,7 @@ object NodeManager {
     }
   }
 
-  private def registerNodeMessage(nid: Int, message: String) : Unit = {
+  private def registerNodeMessage(nid: Int, message: String, isRemote : Boolean) : Unit = {
     NotemakerApp.logger.info("Message sent!")
 
     var found : Node = null
@@ -156,7 +157,6 @@ object NodeManager {
       (n: Node) => n.id match {
         case i if i == nid => {
           found = n
-          n.Text = message
           true
         }
         case i if i != nid => {
@@ -167,8 +167,11 @@ object NodeManager {
 
     if(found != null) {
       nodeList = nlist
+      found.Text = message
 
-      invokeUpdatedTextListener(found)
+      if(isRemote)
+        invokeUpdatedTextListener(found)
+
     } else {
       NotemakerApp.logger.warning("Tried to update text on node which ID is not known locally!")
     }
@@ -219,6 +222,16 @@ object NodeManager {
       })
     }
   }
+  private class NodeMessageDispatcher extends MessageDispatcher {
+    override def dispatch(msg : String) : Unit = {
+      val mlist = MessageDispatcher.decodeMessage(msg).filter((m: GenericMessage) => m.mtype == "TextSending")
+      val cont : List[NodeMessageContent] = mlist.map((m: GenericMessage) => m.content.asInstanceOf[NodeMessageContent])
+      MessageDispatcher.executeOnJavaFXThread(() => {
+        cont.foreach((c: NodeMessageContent) => NodeManager.registerNodeMessage(c.id, c.text, true)) // invoke logic function
+      })
+    }
+  }
 }
+
 
 

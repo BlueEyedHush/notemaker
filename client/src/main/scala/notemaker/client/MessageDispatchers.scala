@@ -23,7 +23,7 @@ object MessageDispatcher {
     override val typeHints = new ShortTypeHints(List(
       classOf[NodeCreatedContent], classOf[ContainerContent],
       classOf[IdPoolContent], classOf[NodeMovedContent],
-      classOf[NodeDeletedContent]
+      classOf[NodeDeletedContent], classOf[NodeMessageContent]
     ))
     override val typeHintFieldName = "type"
   }
@@ -91,6 +91,10 @@ class LoggingDispatcher extends MessageDispatcher {
         case "NodeDeleted" => {
           val cont = m.content.asInstanceOf[NodeDeletedContent]
           NotemakerApp.logger.info(new StringBuilder("Received NodeDeletedContent: id = ").append(cont.id).toString())
+        }
+        case "TextSending" => {
+          val cont = m.content.asInstanceOf[NodeMessageContent]
+          NotemakerApp.logger.info(new StringBuilder("Received NodeMessageContent: id = ").append(cont.id).append(" @ text: ").append(cont.text).toString())
         }
         case _ =>
           NotemakerApp.logger.info("Unknown message received")

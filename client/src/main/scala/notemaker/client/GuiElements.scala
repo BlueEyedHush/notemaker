@@ -32,6 +32,9 @@ object JfxWorksheet extends Pane {
     JfxWorksheet.delNode(n.id)
     ()
   }
+  NodeManager.nodeUpdatedMessageListener = (n : Node) => {
+    JfxWorksheet.updateInfobox(n.id, n.Text)
+  }
 
   case class ExtractionResult(val found : InfoBox, val rest : Seq[InfoBox])
   def extractInfoboxById(id : Int) = {
@@ -61,6 +64,21 @@ object JfxWorksheet extends Pane {
     for(elem <- sequence) {
       content.add(elem)
     }
+  }
+
+  def updateInfobox(id : Int, text: String) : Unit = {
+    println("Updating node")
+    var list = sequence.filter(
+      (ib : InfoBox) => ib match {
+        case i if i.node.id == id => {
+          ib.setText(text)
+          true
+        }
+        case i if i.node.id != id => {
+          true
+        }
+      }
+    )
   }
 
   def createNode(n : Node, x1 : Double, x2 : Double) = {
@@ -114,13 +132,14 @@ object JfxWorksheet extends Pane {
   def insertKey(key: String): Unit ={
     println(key)
     if(key == "ENTER") {
-//      NodeManager.sendText(focusedIB.node.id, focusedIB.text.getText) //#TODO
+      NodeManager.sendText(focusedIB.node.id, focusedIB.text.getText) //#TODO
     }
 
     ()
   }
 
   def handleKey(key: KeyCode): Unit = {
+    println(key.toString)
     key.toString match {
       case "DELETE" if focusedIB != null =>
         delNode(focusedIB.node.id)

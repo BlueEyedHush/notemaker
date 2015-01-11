@@ -10,7 +10,7 @@
 -author("blueeyedhush").
 -include("../include/global.hrl").
 %% API
--export([spawn/0, start/0, loop/1, inf_clientConn/0, inf_nodeCreated/1, inf_clientDisconn/0, req_content/0, req_id_range/0, inf_nodeMoved/1, inf_nodeDeleted/1]).
+-export([spawn/0, start/0, loop/1, inf_clientConn/0, inf_nodeCreated/1, inf_clientDisconn/0, req_content/0, req_id_range/0, inf_nodeMoved/1, inf_nodeDeleted/1, inf_textSend/1]).
 
 spawn() ->
   Pid = erlang:spawn_link(?MODULE, start, []),
@@ -78,6 +78,23 @@ loop(State) ->
           broadcast_to_all_but(Descriptor#nodeDeleted{type = <<"NodeDeletedContent">>}, PID, NewState#state.clientList),
           goodGod:loop(NewState)
       end;
+    {textSend, PID, Descriptor} ->
+      info_msg("[gG] Node text is being changed"),
+      Res = find_single_matching_record(
+        fun
+          (P) when P#node.id == Descriptor#textSending.id -> true;
+          (_) -> false
+        end, State#state.nodeList, []),
+      case Res of
+        {notFound, _} ->
+          warning_msg(<<"Tried to move node which is not present">>),
+          exit(nodeNotPresent);
+        {N, ListWithoutEl} when is_record(N, node) ->
+          ModNode = N#node{text = Descriptor#textSending.text},
+          NewState = State#state{nodeList = [ModNode|ListWithoutEl]},
+          broadcast_to_all_but(Descriptor#textSending{type = <<"NodeMessageContent">>}, PID, NewState#state.clientList),
+          goodGod:loop(NewState)
+      end;
     {reqContent, PID} ->
       send_content(PID, State),
       goodGod:loop(State);
@@ -143,6 +160,9 @@ inf_nodeMoved(Descriptor) ->
 
 inf_nodeDeleted(Desc) ->
   goodGod ! {nodeDel, self(), Desc}.
+
+inf_textSend(Desc) ->
+  goodGod ! {textSend, self(), Desc}.
 
 req_content() ->
   goodGod ! {reqContent, self()}.

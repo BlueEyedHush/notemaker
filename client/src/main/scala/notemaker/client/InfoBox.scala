@@ -90,6 +90,7 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
     this.setLayoutY(newY)
   }
   def setText(message: String) : Unit = {
+    println("setting text - dupa testing")
     this.text.setText(message)
   }
 }
