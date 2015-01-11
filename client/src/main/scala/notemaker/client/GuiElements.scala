@@ -12,8 +12,6 @@ import scalafx.scene.Group
 import scalafx.scene.text._
 
 
-
-
 /**
  * Created by blueeyedhush on 12/23/14.
  */
@@ -93,16 +91,17 @@ object JfxWorksheet extends Pane {
   def refreshContent = {
     content.remove(0, sequence.length)
     for(elem <- sequence) {
-      elem.rectangle.fill = Color.LightGrey
+//      elem.rectangle.fill = Color.LightGrey
       content.add(elem)
     }
   }
   def setFocus(infoBox: InfoBox) = {
     focusedIB = infoBox
-    val temp = sequence.indexOf(infoBox)
+//    infoBox.text.requestFocus()
+//    val temp = sequence.indexOf(infoBox)
     sequence = sequence.filter(!_.equals(infoBox)) :+ infoBox
     refreshContent
-    infoBox.rectangle.fill = Color.Grey
+//    infoBox.rectangle.fill = Color.Grey
   }
   def checkCollisions(infoBox: InfoBox): Boolean = { // old JfxNode
     if(sequence.length == 1) false
@@ -113,16 +112,20 @@ object JfxWorksheet extends Pane {
           ((e.getLayoutY.toInt + e.rectangle.height.toInt > infoBox.getLayoutY.toInt)))).reduce(_ || _)
     }
   }
+  def insertKey(key: String): Unit ={
 
-  def handleKey(key: KeyCode): Unit ={
-    key.toString match{
+    ()
+  }
+
+  def handleKey(key: KeyCode): Unit = {
+    key.toString match {
       case "DELETE" if focusedIB != null =>
         delNode(focusedIB.node.id)
         NodeManager.deleteNode(focusedIB.node.id)
         focusedIB = null
+      case a: String => insertKey(a)
       case _ => ()
     }
-
   }
 
   onMouseClicked = (event : MouseEvent) => {
@@ -131,5 +134,4 @@ object JfxWorksheet extends Pane {
       //createNode(x,y) - callback will be called and from there GUI node representation will be created
     }
   }
-
 }
