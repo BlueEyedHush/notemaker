@@ -1,6 +1,8 @@
 package notemaker.client
 
 import javafx.geometry.VPos
+import com.sun.javafx.tk.Toolkit
+
 import scalafx.Includes._
 import scalafx.scene.Group
 import scalafx.scene.control.TextArea
@@ -25,15 +27,17 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
   var savedY: Int = 0
 
     this.text = new TextArea(){
+      onKeyTyped = (event: KeyEvent) => resizeInfobox
       onKeyReleased = (event : KeyEvent) => JfxWorksheet.handleKey(event.getCode)
       onMouseClicked = (event: MouseEvent) => handleClick
     }
 
   def handleClick = JfxWorksheet.setFocus(this)
 
+  text.setMinWidth(200)
+  text.setMaxWidth(600)
   text.setPrefSize(200, 200)
   text.setLayoutY(20)
-  text.setMaxWidth(600)
   text.setWrapText(true)
   text.setStyle("-fx-border-color: transparent; -fx-border-width: 0; "
     + "-fx-border-radius: 0; -fx-focus-color: transparent;");
@@ -90,7 +94,17 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
     this.setLayoutY(newY)
   }
   def setText(message: String) : Unit = {
-    println("setting text - dupa testing")
+//    println("setting text - dupa testing")
     this.text.setText(message)
+    resizeInfobox()
+  }
+  def resizeInfobox() = {
+//    println(text.width)
+    val line = text.getText.split("\n")
+    val width = line.map(p => Toolkit.getToolkit.getFontLoader.computeStringWidth(p, text.getFont)).reduce((a,b) => if(a > b) a else b) + 26
+    text.setPrefWidth(width)
+    if(width<200) rectangle.width = 200
+    else if(width>600) rectangle.width = 600
+    else rectangle.width = width
   }
 }
