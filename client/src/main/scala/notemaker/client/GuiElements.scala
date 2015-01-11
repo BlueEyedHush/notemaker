@@ -22,7 +22,11 @@ object JfxWorksheet extends Pane {
   content = sequence
 
   NodeManager.nodeListener = (n : Node) => {
-    JfxWorksheet.createNode(n.x.toDouble, n.y.toDouble)
+    JfxWorksheet.createNode(n, n.x.toDouble, n.y.toDouble)
+    ()
+  }
+  NodeManager.nodeMovedListener = (n : Node) => {
+    JfxWorksheet.moveNode(n.id, n.x.toDouble, n.y.toDouble)
     ()
   }
 
@@ -35,10 +39,30 @@ object JfxWorksheet extends Pane {
     }
   }
 
-  def createNode(x1 : Double, x2 : Double) = {
+  def createNode(n : Node, x1 : Double, x2 : Double) = {
     val node = new InfoBox(x1, x2)
+    node.node = n
     sequence = node +: sequence
     content.add(node)
+  }
+
+  def moveNode(id : Int, newX : Double, newY : Double) : Unit = {
+    var found : InfoBox = null
+    var list = sequence.filter(
+      (ib : InfoBox) => ib match {
+        case i if i.node.id == id => {
+          found = i
+          false
+        }
+        case i if i.node.id != id => {
+          true
+        }
+      }
+    )
+
+    if(found != null) {
+      found.move(newX, newY)
+    }
   }
 
   def refreshContent = {

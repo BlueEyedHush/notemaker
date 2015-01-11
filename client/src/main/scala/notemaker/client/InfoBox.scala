@@ -13,6 +13,7 @@ import scalafx.scene.text.{TextAlignment, Text}
  * Created by kuba on 10.01.15.
  */
 class InfoBox(x1:Double, x2: Double) extends Group {
+    var node : Node = null
     var napis : Text = null
     var rectangle : Rectangle = null
     this.setLayoutX(x1.toInt)
@@ -54,6 +55,10 @@ class InfoBox(x1:Double, x2: Double) extends Group {
         if (JfxWorksheet.checkCollisions(this)) {
             this.setLayoutX(savedX)
             this.setLayoutY(savedY)
+        } else {
+          // @ToDo: Refactor
+          NodeManager.moveNode(node.id, this.getLayoutX.toInt, this.getLayoutY.toInt)
+          //JfxWorksheet.moveNode(node.id, this.getLayoutX, this.getLayoutY)
         }
     }
     onMouseDragged = (event: MouseEvent) => {
@@ -66,4 +71,9 @@ class InfoBox(x1:Double, x2: Double) extends Group {
     }
 
     this.getChildren().addAll(rectangle, napis)
+
+    def move(newX : Double, newY : Double) : Unit = {
+      this.setLayoutX(newX)
+      this.setLayoutY(newY)
+    }
 }

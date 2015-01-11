@@ -10,7 +10,7 @@
 -author("blueeyedhush").
 -include("../include/global.hrl").
 %% API
--export([spawn/0, start/0, loop/1, inf_clientConn/0, inf_nodeCreated/1, inf_clientDisconn/0, req_content/0, req_id_range/0]).
+-export([spawn/0, start/0, loop/1, inf_clientConn/0, inf_nodeCreated/1, inf_clientDisconn/0, req_content/0, req_id_range/0, inf_nodeMoved/1]).
 
 spawn() ->
   Pid = erlang:spawn_link(?MODULE, start, []),
@@ -43,8 +43,25 @@ loop(State) ->
       info_msg("[gG] New node created with coords: " ++ integer_to_list(Descriptor#nodeCreated.x) ++ " " ++ integer_to_list(Descriptor#nodeCreated.y)),
       NewState = State#state{nodeList = [#node{id = Descriptor#nodeCreated.id, posX = Descriptor#nodeCreated.x, posY = Descriptor#nodeCreated.y}|State#state.nodeList]},
       % @ToDo: Just a temporary fix, rewrite it
-      broadcast_to_all_but(Descriptor#nodeCreated{type = <<"NodeCreatedContent">>}, PID, State#state.clientList),
+      broadcast_to_all_but(Descriptor#nodeCreated{type = <<"NodeCreatedContent">>}, PID, NewState#state.clientList),
       goodGod:loop(NewState);
+    {nodeMoved, PID, Descriptor} ->
+      info_msg("[gG] Node wants to be moved"),
+      Res = find_single_matching_record(
+        fun
+          (P) when P#node.id == Descriptor#nodeMoved.id -> true;
+          (_) -> false
+        end, State#state.nodeList, []),
+      case Res of
+        {notFound, _} ->
+          warning_msg(<<"Tried to move node which is not present">>),
+          exit(nodeNotPresent);
+        {N, ListWithoutEl} when is_record(N, node) ->
+          ModNode = N#node{posX = Descriptor#nodeMoved.x, posY = Descriptor#nodeMoved.y},
+          NewState = State#state{nodeList = [ModNode|ListWithoutEl]},
+          broadcast_to_all_but(Descriptor#nodeMoved{type = <<"NodeMovedContent">>}, PID, NewState#state.clientList),
+          goodGod:loop(NewState)
+      end;
     {reqContent, PID} ->
       send_content(PID, State),
       goodGod:loop(State);
@@ -83,6 +100,18 @@ remove_from_list(El, [A|List], Acc) when El == A ->
 remove_from_list(El, [A|List], Acc) ->
   remove_from_list(El, List, [A|Acc]).
 
+%also removed that element from the list, returns {Element, Rest}, changes order of element in the list
+find_single_matching_record(_, [], Rest) ->
+  {notFound, Rest};
+find_single_matching_record(Pred, [H|T], AlreadyChecked) ->
+  Res = Pred(H),
+  if
+    Res == true ->
+      {H, AlreadyChecked ++ T};
+    Res == false ->
+      find_single_matching_record(Pred, T, [H|AlreadyChecked])
+  end.
+
 % wrappers for message-based communication with goodGod
 inf_clientConn() ->
   goodGod ! {clientConnected, self()}.
@@ -92,6 +121,9 @@ inf_clientDisconn() ->
 
 inf_nodeCreated(Descriptor) ->
   goodGod ! {nodeCreated, self(), Descriptor}.
+
+inf_nodeMoved(Descriptor) ->
+  goodGod ! {nodeMoved, self(), Descriptor}.
 
 req_content() ->
   goodGod ! {reqContent, self()}.
