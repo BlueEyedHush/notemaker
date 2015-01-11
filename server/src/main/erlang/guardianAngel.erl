@@ -63,6 +63,8 @@ dispatchTcpMessage(_, Rec) when is_record(Rec, nodeCreated) ->
   goodGod:inf_nodeCreated(Rec);
 dispatchTcpMessage(_, Rec) when is_record(Rec, nodeMoved) ->
   goodGod:inf_nodeMoved(Rec);
+dispatchTcpMessage(_, Rec) when is_record(Rec, nodeDeleted) ->
+  goodGod:inf_nodeDeleted(Rec);
 dispatchTcpMessage(_, Rec) when is_record(Rec, idPoolContent) ->
   goodGod:req_id_range();
 dispatchTcpMessage(Soc, test) ->

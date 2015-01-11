@@ -31,6 +31,10 @@ encode(Record) when is_record(Record, nodeMoved) ->
   Content = ?record_to_json(nodeMoved, Record),
   Encoded = binary_to_list(iolist_to_binary(Content)),
   "{\"mtype\":\"NodeMoved\",\"content\":" ++ Encoded ++ "}";
+encode(Record) when is_record(Record, nodeDeleted) ->
+  Content = ?record_to_json(nodeDeleted, Record),
+  Encoded = binary_to_list(iolist_to_binary(Content)),
+  "{\"mtype\":\"NodeDeleted\",\"content\":" ++ Encoded ++ "}";
 encode([]) ->
   "{\"mtype\":\"Container\",\"content\":{\"type\":\"ContainerContent\",\"mlist\":[]}}";
 encode(RecordList) when is_list(RecordList) -> %jeszcze sprawdzić, czy jest przynajmniej jednoelementowa
@@ -56,7 +60,8 @@ decode(Mesg) ->
       "Test" -> test;
       "NodeCreated" -> ?json_to_record(nodeCreated, JsonContent);
       "IdPool" -> ?json_to_record(idPoolContent, JsonContent);
-      "NodeMoved" -> ?json_to_record(nodeMoved, JsonContent)
+      "NodeMoved" -> ?json_to_record(nodeMoved, JsonContent);
+      "NodeDeleted" -> ?json_to_record(nodeDeleted, JsonContent)
     end.
 
 parse(Mesg) ->
