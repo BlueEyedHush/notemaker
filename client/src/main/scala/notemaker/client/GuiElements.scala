@@ -5,7 +5,7 @@ import javafx.geometry.VPos
 import scalafx.Includes._
 import scalafx.scene.effect.DropShadow
 import scalafx.scene.input.{KeyCode, MouseEvent}
-import scalafx.scene.layout.{Region, Pane}
+import scalafx.scene.layout.{BackgroundImage, Region, Pane}
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.Group
@@ -16,6 +16,8 @@ import scalafx.scene.text._
  * Created by blueeyedhush on 12/23/14.
  */
 object JfxWorksheet extends Pane {
+
+//  this.setStyle("-fx-background-image: url('background.jpg')")
   var sequence: Seq[InfoBox] = Seq()
   var focusedIB : InfoBox = null
   content = sequence
@@ -130,7 +132,7 @@ object JfxWorksheet extends Pane {
     }
   }
   def insertKey(key: String): Unit ={
-    println(key)
+//    println(key)
     if(key == "ENTER") {
       NodeManager.sendText(focusedIB.node.id, focusedIB.text.getText) //#TODO
     }
@@ -139,7 +141,7 @@ object JfxWorksheet extends Pane {
   }
 
   def handleKey(key: KeyCode): Unit = {
-    println(key.toString)
+//    println(key.toString)
     key.toString match {
       case "DELETE" if focusedIB != null =>
         delNode(focusedIB.node.id)
@@ -150,10 +152,19 @@ object JfxWorksheet extends Pane {
     }
   }
 
+  var tempX: Int = 0
+  var tempY: Int = 0
   onMouseClicked = (event : MouseEvent) => {
+    tempX = event.getX.toInt
+    tempY = event.getY.toInt
     if(event.getClickCount == 2) {
       NodeManager.createNode(event.getX.toInt - 25, event.getY.toInt - 25)
       //createNode(x,y) - callback will be called and from there GUI node representation will be created
     }
+  }
+  onMouseDragged = (event : MouseEvent) => {
+    println(event.getX + " : " + event.getY)
+//    JfxWorksheet.setLayoutX(this.getLayoutX.toInt + event.getX.toInt - tempX)
+//    JfxWorksheet.setLayoutY(this.getLayoutY.toInt + event.getY.toInt - tempY)
   }
 }

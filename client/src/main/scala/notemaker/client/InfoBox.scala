@@ -35,6 +35,7 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
   def handleClick = JfxWorksheet.setFocus(this)
 
   text.setMinWidth(200)
+  text.setMinHeight(200)
   text.setMaxWidth(600)
   text.setPrefSize(200, 200)
   text.setLayoutY(20)
@@ -99,12 +100,15 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
     resizeInfobox()
   }
   def resizeInfobox() = {
-//    println(text.width)
     val line = text.getText.split("\n")
+    val height = line.length * Toolkit.getToolkit.getFontLoader.getFontMetrics(text.getFont()).getLineHeight()
     val width = line.map(p => Toolkit.getToolkit.getFontLoader.computeStringWidth(p, text.getFont)).reduce((a,b) => if(a > b) a else b) + 26
     text.setPrefWidth(width)
+    text.setPrefHeight(height)
     if(width<200) rectangle.width = 200
     else if(width>600) rectangle.width = 600
     else rectangle.width = width
+    if(height<200) rectangle.height = 220
+    else rectangle.height = height + 20
   }
 }
