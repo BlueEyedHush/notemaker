@@ -72,7 +72,7 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
     if(this.getLayoutX.toInt != savedX || this.getLayoutY.toInt != savedY) {
       NodeManager.moveNode(node.id, this.getLayoutX.toInt, this.getLayoutY.toInt)
     }
-    JfxWorksheet.supressFocusedIBList = true
+    JfxWorksheet.supressFocusedIBList = false
   }
   onMouseDragged = (event: MouseEvent) => {
     JfxWorksheet.supressFocusedIBList = true
