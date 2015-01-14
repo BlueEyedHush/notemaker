@@ -113,18 +113,11 @@ object JfxWorksheet extends Pane {
     }
   }
 
-  def refreshContent = {
-    content.remove(0, sequence.length)
-    for(elem <- sequence) {
-      elem.rectangle.fill = Color.LightGrey
-      content.add(elem)
-    }
-  }
   def setFocus(infoBox: InfoBox) = {
     focusedIB = infoBox
-//    val temp = sequence.indexOf(infoBox)
-    sequence = sequence.filter(!_.equals(infoBox)) :+ infoBox
-    refreshContent
+    content.remove(infoBox)
+    for(elem <- sequence) if (elem != infoBox) elem.rectangle.fill = Color.LightGrey
+    content.add(infoBox)
     infoBox.rectangle.fill = Color.Grey
   }
 
