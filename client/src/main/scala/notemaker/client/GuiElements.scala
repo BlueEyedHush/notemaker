@@ -66,11 +66,7 @@ object JfxWorksheet extends Pane {
     val extrRes = extractInfoboxById(nid)
 
     sequence = extrRes.rest
-
-    content.clear()
-    for(elem <- sequence) {
-      content.add(elem)
-    }
+    content.remove(extrRes.found)
   }
 
   def updateInfobox(id : Int, text: String) : Unit = {
@@ -126,7 +122,6 @@ object JfxWorksheet extends Pane {
     if(key == "ENTER") {
       NodeManager.sendText(focusedIB.node.id, focusedIB.text.getText) //#TODO
     }
-
     ()
   }
 
@@ -142,16 +137,19 @@ object JfxWorksheet extends Pane {
     }
   }
 
-  var tempX: Int = 0
-  var tempY: Int = 0
-  onMouseClicked = (event : MouseEvent) => {
-    tempX = event.getX.toInt
-    tempY = event.getY.toInt
-    if(event.getClickCount == 2) {
+  def handleMouse(event: MouseEvent): Unit = {
+    if (event.getClickCount == 2 && event.getButton.toString == "PRIMARY") {
       NodeManager.createNode(event.getX.toInt - 25, event.getY.toInt - 25)
       //createNode(x,y) - callback will be called and from there GUI node representation will be created
     }
   }
+
+
+
+//  onMouseClicked = (event : MouseEvent) => {
+//    handleMouse(event)
+//    println("Jfxworksheet got mouse")
+//  }
 //  onMouseDragged = (even/t : MouseEvent) => {
 //    println(event.getX + " : " + event.getY)
 //    JfxWorksheet.setLayoutX(this.getLayoutX.toInt + event.getX.toInt - tempX)
