@@ -9,6 +9,7 @@ import javafx.application.Application
 
 import scalafx.Includes._
 import scalafx.scene.Scene
+import scalafx.scene.control.ScrollPane
 import scalafx.scene.input.KeyEvent
 
 object Core {
@@ -58,10 +59,11 @@ class NotemakerApp extends Application {
     stage.setWidth(800)
     stage.setHeight(600)
 
+
     val scene = new Scene() {
       root = JfxWorksheet
-      onKeyPressed = (event : KeyEvent) => JfxWorksheet.handleKey(event.getCode)
-   }
+      onKeyPressed = (event: KeyEvent) => JfxWorksheet.handleKey(event.getCode)
+    }
 
     stage.setScene(scene)
     stage.show()
