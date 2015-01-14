@@ -5,7 +5,7 @@ import javafx.geometry.VPos
 import scalafx.Includes._
 import scalafx.scene.effect.DropShadow
 import scalafx.scene.input.{KeyCode, MouseEvent}
-import scalafx.scene.layout.{BackgroundImage, Region, Pane}
+import scalafx.scene.layout.{StackPane, BackgroundImage, Region, Pane}
 import scalafx.scene.paint.Color
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.Group

@@ -11,6 +11,7 @@ import scalafx.Includes._
 import scalafx.scene.Scene
 import scalafx.scene.control.ScrollPane
 import scalafx.scene.input.KeyEvent
+import scalafx.scene.layout.Pane
 
 object Core {
   def initialize() : Unit = {
@@ -60,19 +61,43 @@ class NotemakerApp extends Application {
     stage.setHeight(600)
 
 
-    val scene = new Scene() {
-      root = JfxWorksheet
-      onKeyPressed = (event: KeyEvent) => JfxWorksheet.handleKey(event.getCode)
-    }
+//    StackPane layout = new StackPane();
+//    layout.getChildren().setAll(
+//      new ImageView(backgroundImage),
+//      createKillButton()
+//    );
 
+    //    val scene = new Scene() {
+//      root = JfxWorksheet
+//      onKeyPressed = (event: KeyEvent) => JfxWorksheet.handleKey(event.getCode)
+//    }
+
+    val scrollPane = createScrollPane(JfxWorksheet)
+    val scene = new Scene(scrollPane)
     stage.setScene(scene)
     stage.show()
+//    scrollPane.prefWidthProperty().bind(scene.widthProperty())
+//    scrollPane.prefHeightProperty().bind(scene.heightProperty())
+//    scrollPane.setHvalue(scrollPane.getHmin() + (scrollPane.getHmax() - scrollPane.getHmin())/2)
+//    scrollPane.setVvalue(scrollPane.getVmin() + (scrollPane.getVmax() - scrollPane.getVmin())/2)
+
     Core.initialize()
   }
 
   @Override
   override def stop() : Unit = {
     Core.cleanup()
+  }
+
+  private def createScrollPane(layout: Pane): ScrollPane = {
+    var scroll: ScrollPane = new ScrollPane()
+    scroll = new ScrollPane();
+    scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+    scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
+    scroll.setPannable(true);
+    scroll.setPrefSize(800, 600);
+    scroll.setContent(layout);
+    scroll
   }
 }
 
