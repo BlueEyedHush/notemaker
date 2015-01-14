@@ -122,15 +122,7 @@ object JfxWorksheet extends Pane {
     refreshContent
     infoBox.rectangle.fill = Color.Grey
   }
-  def checkCollisions(infoBox: InfoBox): Boolean = { // old JfxNode
-    if(sequence.length == 1) false
-    else {
-      sequence.filter(!_.equals(infoBox)).map(e => (e.getLayoutX.toInt < (infoBox.getLayoutX.toInt + infoBox.rectangle.width.toInt)) && (
-        (e.getLayoutX.toInt + e.rectangle.width.toInt) > infoBox.getLayoutX.toInt) &&
-        (e.getLayoutY.toInt < (infoBox.getLayoutY.toInt + infoBox.rectangle.height.toInt) &&
-          ((e.getLayoutY.toInt + e.rectangle.height.toInt > infoBox.getLayoutY.toInt)))).reduce(_ || _)
-    }
-  }
+
   def insertKey(key: String): Unit ={
 //    println(key)
     if(key == "ENTER") {
@@ -162,9 +154,9 @@ object JfxWorksheet extends Pane {
       //createNode(x,y) - callback will be called and from there GUI node representation will be created
     }
   }
-  onMouseDragged = (event : MouseEvent) => {
-    println(event.getX + " : " + event.getY)
+//  onMouseDragged = (even/t : MouseEvent) => {
+//    println(event.getX + " : " + event.getY)
 //    JfxWorksheet.setLayoutX(this.getLayoutX.toInt + event.getX.toInt - tempX)
 //    JfxWorksheet.setLayoutY(this.getLayoutY.toInt + event.getY.toInt - tempY)
-  }
+//  }
 }

@@ -68,24 +68,14 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
   }
   onMouseReleased = (event : MouseEvent) => {
       text.effect = null
-      if (JfxWorksheet.checkCollisions(this)) {
-          this.setLayoutX(savedX)
-          this.setLayoutY(savedY)
-      } else {
         // @ToDo: Refactor
         if(this.getLayoutX.toInt != savedX || this.getLayoutY.toInt != savedY) {
           NodeManager.moveNode(node.id, this.getLayoutX.toInt, this.getLayoutY.toInt)
-        }
       }
   }
   onMouseDragged = (event: MouseEvent) => {
-      if(JfxWorksheet.checkCollisions(this))
-          background.color = Color.Red
-      else
-          background.color = Color.Grey
       this.setLayoutX(this.getLayoutX.toInt + event.getX.toInt - tempX)
       this.setLayoutY(this.getLayoutY.toInt + event.getY.toInt - tempY)
-//      NodeManager.moveNode(node.id, this.getLayoutX.toInt, this.getLayoutY.toInt)
   }
 
   /* Member functions */
