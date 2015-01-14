@@ -23,6 +23,9 @@ start() ->
   {ok, Port} = application:get_env(port),
   {ok, LS} = gen_tcp:listen(Port, [{active, true}, list]),
   io:format("~w \n", [LS]),
+
+  database:start(),
+
   %spawn first child
   FirstChildPID = erlang:spawn(guardianAngel, start, [LS]),
   register(child, FirstChildPID),
@@ -117,6 +120,7 @@ loop(State) ->
 
 terminate(State) ->
   info_msg("[gG] Terminating..."),
+  database:shutdown(),
   gen_tcp:close(State#state.listenSocket).
 
 broadcast_to_all_but(_, _, []) -> ok;
