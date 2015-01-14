@@ -10,7 +10,7 @@ import javafx.application.Application
 import scalafx.Includes._
 import scalafx.scene.Scene
 import scalafx.scene.control.ScrollPane
-import scalafx.scene.input.KeyEvent
+import scalafx.scene.input.{MouseEvent, KeyEvent}
 import scalafx.scene.layout.Pane
 
 object Core {
@@ -73,7 +73,13 @@ class NotemakerApp extends Application {
 //    }
 
     val scrollPane = createScrollPane(JfxWorksheet)
+    scrollPane.onMouseClicked = (event: MouseEvent) => {
+      println("Scrollpane got mouse")
+      JfxWorksheet.handleMouse(event)
+    }
     val scene = new Scene(scrollPane)
+    scene.onKeyPressed = (event: KeyEvent) => JfxWorksheet.handleKey(event.getCode)
+//    scene.onMouseClicked = (event: MouseEvent) => JfxWorksheet.handleMouse(event)
     stage.setScene(scene)
     stage.show()
 //    scrollPane.prefWidthProperty().bind(scene.widthProperty())
