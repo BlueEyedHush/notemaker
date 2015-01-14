@@ -18,24 +18,29 @@ import scalafx.scene.text._
 object JfxWorksheet extends Pane {
 
 //  this.setStyle("-fx-background-image: url('background.jpg')")
-  var sequence: Seq[InfoBox] = Seq()
+  var sequence: Seq[InfoBox] = Seq[InfoBox]()
   var focusedIB : InfoBox = null
+  var supressFocusedIBList : Boolean = false
   content = sequence
 
-  NodeManager.nodeListener = (n : Node) => {
+  NodeManager.nodeCreatedListener.fun = (n : Node) => {
     JfxWorksheet.createNode(n, n.x.toDouble, n.y.toDouble)
     ()
   }
-  NodeManager.nodeMovedListener = (n : Node) => {
-    JfxWorksheet.moveNode(n.id, n.x.toDouble, n.y.toDouble)
+  NodeManager.nodeMovedListener.fun = (n : Node) => {
+    if(!(supressFocusedIBList && focusedIB.node.id == n.id))
+      JfxWorksheet.moveNode(n.id, n.x.toDouble, n.y.toDouble)
     ()
   }
-  NodeManager.nodeDeletedListener = (n : Node) => {
-    JfxWorksheet.delNode(n.id)
+  NodeManager.nodeDeletedListener.fun = (n : Node) => {
+    if(!(supressFocusedIBList && focusedIB.node.id == n.id))
+      JfxWorksheet.delNode(n.id)
     ()
   }
-  NodeManager.nodeUpdatedMessageListener = (n : Node) => {
-    JfxWorksheet.updateInfobox(n.id, n.Text)
+  NodeManager.nodeUpdatedMessageListener.fun = (n : Node) => {
+    if(!(supressFocusedIBList && focusedIB.node.id == n.id))
+      JfxWorksheet.updateInfobox(n.id, n.Text)
+    ()
   }
 
   case class ExtractionResult(val found : InfoBox, val rest : Seq[InfoBox])

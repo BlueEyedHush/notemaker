@@ -12,6 +12,13 @@ case class NodeMovedContent(val id : Int, val x : Int, val y : Int) extends Mess
 case class NodeDeletedContent(val id: Int) extends MessageContent
 case class NodeMessageContent(val id: Int, val text: String) extends MessageContent
 
+class Callback[T](var fun : (T) => Unit = null) {
+  def invoke(param : T) = {
+    if (fun != null)
+      fun(param)
+  }
+}
+
 object NodeManager {
   def init() = {
     NetworkingService.dispatchers().add(new NodeCreatedDispatcher)
@@ -53,37 +60,10 @@ object NodeManager {
     nodeList
   }
 
-  var nodeListener : ((Node) => Unit) = null
-  private def invokeListener(n : Node) = {
-    nodeListener match {
-      case null => ()
-      case _ => nodeListener(n)
-    }
-  }
-
-  var nodeMovedListener : ((Node) => Unit) = null
-  private def invokeNodeMovedListener(n : Node) = {
-    nodeMovedListener match {
-      case null => ()
-      case _ => nodeMovedListener(n)
-    }
-  }
-
-  var nodeDeletedListener : ((Node) => Unit) = null
-  private def invokeNodeDeletedListener(n : Node) = {
-    nodeDeletedListener match {
-      case null => ()
-      case _ => nodeDeletedListener(n)
-    }
-  }
-
-  var nodeUpdatedMessageListener : ((Node) => Unit) = null
-  private def invokeUpdatedTextListener(n : Node) = {
-    nodeUpdatedMessageListener match {
-      case null => ()
-      case _ => nodeUpdatedMessageListener(n)
-    }
-  }
+  var nodeCreatedListener = new Callback[Node]
+  var nodeMovedListener = new Callback[Node]
+  var nodeDeletedListener = new Callback[Node]
+  var nodeUpdatedMessageListener = new Callback[Node]
 
   private def registerNode(nc : NodeCreatedContent) : Unit = {
     this.registerNode(new Node(id = nc.id, x = nc.x, y = nc.y))
@@ -91,7 +71,7 @@ object NodeManager {
 
   private def registerNode(n : Node) : Unit = {
     nodeList = n :: nodeList
-    invokeListener(n)
+    nodeCreatedListener.invoke(n)
     ()
   }
 
@@ -118,7 +98,7 @@ object NodeManager {
       found.y = nm.y
       nodeList = found :: nlist
 
-      invokeNodeMovedListener(found)
+      nodeMovedListener.invoke(found)
     } else {
       NotemakerApp.logger.warning("Tried to move node which ID is not known locally!")
     }
@@ -143,7 +123,7 @@ object NodeManager {
     if(found != null) {
       nodeList = nlist
 
-      invokeNodeDeletedListener(found)
+      nodeDeletedListener.invoke(found)
     } else {
       NotemakerApp.logger.warning("Tried to delete node which ID is not known locally!")
     }
@@ -170,7 +150,7 @@ object NodeManager {
       found.Text = message
 
       if(isRemote)
-        invokeUpdatedTextListener(found)
+        nodeUpdatedMessageListener.invoke(found)
 
     } else {
       NotemakerApp.logger.warning("Tried to update text on node which ID is not known locally!")
