@@ -14,7 +14,7 @@
 
 %% API
 -export([start/0, shutdown/0, createNode/1, deleteNode/1, updateNode/2, getNodeById/1,
-  getAllNodes/0, getOrCreateFFID/1, updateFFID/1]).
+  getAllNodes/0, getAll/1, getOrCreateConfig/2, updateFFID/1]).
 
 % Initialization
 
@@ -82,12 +82,15 @@ updateNode(Id, Text) ->%when is_bitstring(Text) ->
     end
   ).
 
-getAllNodes() ->
+getAll(TableName) when is_atom(TableName) ->
   mnesia:activity(async_dirty,
     fun() ->
-      mnesia:select(node, ets:fun2ms(fun(N) -> N end))
+      mnesia:select(TableName, ets:fun2ms(fun(N) -> N end))
     end
   ).
+
+getAllNodes() ->
+  getAll(node).
 
 getNodeById(Id) when is_integer(Id) ->
   mnesia:activity(async_dirty,
@@ -98,7 +101,7 @@ getNodeById(Id) when is_integer(Id) ->
   ).
 
 
-
+%@ToDo: make it general purpose (key as parameter)
 updateFFID(NewValue) when is_integer(NewValue) ->
   mnesia:activity(async_dirty,
     fun() ->
@@ -106,16 +109,16 @@ updateFFID(NewValue) when is_integer(NewValue) ->
     end
   ).
 
-getOrCreateFFID(NewValue) when is_integer(NewValue) ->
+getOrCreateConfig(Key, NewValue) when is_integer(NewValue) ->
   mnesia:activity(async_dirty,
     fun() ->
-      case mnesia:read({config, firstFreeId}) of
+      case mnesia:read({config, Key}) of
         [] ->
-          mnesia:write(#config{key = firstFreeId, val = NewValue}),
+          mnesia:write(#config{key = Key, val = NewValue}),
           NewValue;
         [#config{val = Val}] -> Val;
         _ ->
-          error_msg("Problem with firstFreeIds. (multiple present?)")
+          error_msg("Problem with config elemnt ~p. (multiple present?)", [Key])
       end
     end
   ).
