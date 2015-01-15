@@ -20,18 +20,21 @@ start() ->
   info_msg("[gG] Started"),
   register(goodGod, self()),
   process_flag(trap_exit, true),
+
+  database:start(),
+
   {ok, Port} = application:get_env(port),
   {ok, LS} = gen_tcp:listen(Port, [{active, true}, list]),
   io:format("~w \n", [LS]),
-
-  database:start(),
 
   %spawn first child
   FirstChildPID = erlang:spawn(guardianAngel, start, [LS]),
   register(child, FirstChildPID),
   {ok, IdPoolSize }= application:get_env(idPoolSize),
   %io:format("~p \n", [IdPoolSize]),
-  loop(#state{listenSocket = LS, clientList = [FirstChildPID], nodeList = [], firstFreeId = -2147483648, idPoolSize = IdPoolSize}).
+  FreeId = database:getOrCreateFFID(-2147483648),
+  io:format("\n FFId: ~p \n", [FreeId]),
+  loop(#state{listenSocket = LS, clientList = [FirstChildPID], nodeList = database:getAllNodes(), firstFreeId = -2147483648, idPoolSize = IdPoolSize}).
 
 loop(State) ->
   receive
@@ -44,9 +47,11 @@ loop(State) ->
       goodGod:loop(State#state{clientList = remove_from_list(PID, State#state.clientList, [])});
     {nodeCreated, PID, Descriptor} ->
       info_msg("[gG] New node created with coords: " ++ integer_to_list(Descriptor#nodeCreated.x) ++ " " ++ integer_to_list(Descriptor#nodeCreated.y)),
-      NewState = State#state{nodeList = [#node{id = Descriptor#nodeCreated.id, posX = Descriptor#nodeCreated.x, posY = Descriptor#nodeCreated.y}|State#state.nodeList]},
+      Node = #node{id = Descriptor#nodeCreated.id, posX = Descriptor#nodeCreated.x, posY = Descriptor#nodeCreated.y, text = <<"">>},
+      NewState = State#state{nodeList = [Node|State#state.nodeList]},
       % @ToDo: Just a temporary fix, rewrite it
       broadcast_to_all_but(Descriptor#nodeCreated{type = <<"NodeCreatedContent">>}, PID, NewState#state.clientList),
+      database:createNode(Node),
       goodGod:loop(NewState);
     {nodeMoved, PID, Descriptor} ->
       info_msg("[gG] Node wants to be moved"),
@@ -63,6 +68,8 @@ loop(State) ->
           ModNode = N#node{posX = Descriptor#nodeMoved.x, posY = Descriptor#nodeMoved.y},
           NewState = State#state{nodeList = [ModNode|ListWithoutEl]},
           broadcast_to_all_but(Descriptor#nodeMoved{type = <<"NodeMovedContent">>}, PID, NewState#state.clientList),
+          % @ToDo: probably not the most optimal, after removing old mechanism should be refact
+          database:updateNode(ModNode#node.id, {ModNode#node.posX, ModNode#node.posY}),
           goodGod:loop(NewState)
       end;
     {nodeDel, PID, Descriptor} ->
@@ -79,6 +86,7 @@ loop(State) ->
         {_, ListWithoutEl} ->
           NewState = State#state{nodeList = ListWithoutEl},
           broadcast_to_all_but(Descriptor#nodeDeleted{type = <<"NodeDeletedContent">>}, PID, NewState#state.clientList),
+          database:deleteNode(Descriptor#nodeDeleted.id),
           goodGod:loop(NewState)
       end;
     {textSend, PID, Descriptor} ->
@@ -96,6 +104,7 @@ loop(State) ->
           ModNode = N#node{text = Descriptor#textSending.text},
           NewState = State#state{nodeList = [ModNode|ListWithoutEl]},
           broadcast_to_all_but(Descriptor#textSending{type = <<"NodeMessageContent">>}, PID, NewState#state.clientList),
+          database:updateNode(ModNode#node.id, ModNode#node.text),
           goodGod:loop(NewState)
       end;
     {reqContent, PID} ->
@@ -109,6 +118,7 @@ loop(State) ->
           io:format("\nAssigned pool, firstId: ~p\n", [State#state.firstFreeId]),
           Last = State#state.firstFreeId + State#state.idPoolSize - 1,
           send_id_pool(PID, State#state.firstFreeId, Last),
+          database:updateFFID(Last + 1),
           goodGod:loop(State#state{firstFreeId = Last + 1})
       end;
     {'EXIT', _, _} ->
@@ -178,7 +188,8 @@ send_retransmit(PID, Mesg) ->
   PID ! {gG, retrans, Mesg}.
 
 send_content(PID, State) ->
-  PID ! {gG, content, State#state.nodeList}.
+  NodeList = database:getAllNodes(),
+  PID ! {gG, content, NodeList}.
 
 send_id_pool(PID, First, Last) ->
   PID ! {gG, idPool, {First, Last}}.
