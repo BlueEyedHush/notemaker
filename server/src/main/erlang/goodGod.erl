@@ -30,11 +30,12 @@ start() ->
   %spawn first child
   FirstChildPID = erlang:spawn(guardianAngel, start, [LS]),
   register(child, FirstChildPID),
-  {ok, IdPoolSize }= application:get_env(idPoolSize),
-  %io:format("~p \n", [IdPoolSize]),
-  FreeId = database:getOrCreateFFID(-2147483648),
+  {ok, DefIdPoolSize }= application:get_env(idPoolSize),
+  {ok, DefFFID} = application:get_env(firstFreeId),
+  FreeId = database:getOrCreateConfig(firstFreeId, DefFFID),
+  IdPoolSize = database:getOrCreateConfig(idPoolSize, DefIdPoolSize),
   io:format("\n FFId: ~p \n", [FreeId]),
-  loop(#state{listenSocket = LS, clientList = [FirstChildPID], nodeList = database:getAllNodes(), firstFreeId = -2147483648, idPoolSize = IdPoolSize}).
+  loop(#state{listenSocket = LS, clientList = [FirstChildPID], nodeList = database:getAllNodes(), firstFreeId = FreeId, idPoolSize = IdPoolSize}).
 
 loop(State) ->
   receive
