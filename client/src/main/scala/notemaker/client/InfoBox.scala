@@ -27,8 +27,10 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
   var savedY: Int = 0
 
     this.text = new TextArea(){
-      onKeyTyped = (event: KeyEvent) => resizeInfobox
       onKeyReleased = (event : KeyEvent) => JfxWorksheet.handleKey(event.getCode)
+//      onKeyPressed = (event: KeyEvent) => resizeInfobox()
+      onKeyTyped = (event: KeyEvent) => resizeInfobox()
+//      onKeyReleased = (event: KeyEvent) => resizeInfobox()
       onMouseClicked = (event: MouseEvent) => handleClick
     }
 
@@ -94,7 +96,7 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
   def resizeInfobox() = {
     val line = text.getText.split("\n")
     val height = line.length * Toolkit.getToolkit.getFontLoader.getFontMetrics(text.getFont()).getLineHeight()
-    val width = line.map(p => Toolkit.getToolkit.getFontLoader.computeStringWidth(p, text.getFont)).reduce((a,b) => if(a > b) a else b) + 26
+    val width = line.map(p => Toolkit.getToolkit.getFontLoader.computeStringWidth(p, text.getFont)).reduce((a,b) => if(a > b) a else b) + 28
     text.setPrefWidth(width)
     text.setPrefHeight(height)
     if(width<200) rectangle.width = 200
