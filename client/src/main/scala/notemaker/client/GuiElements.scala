@@ -126,7 +126,6 @@ object JfxWorksheet extends Pane {
   }
 
   def handleKey(key: KeyCode): Unit = {
-//    println(key.toString)
     key.toString match {
       case "DELETE" if focusedIB != null =>
         delNode(focusedIB.node.id)
