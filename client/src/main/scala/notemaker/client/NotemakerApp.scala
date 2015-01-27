@@ -67,17 +67,17 @@ class NotemakerApp extends Application {
 //      createKillButton()
 //    );
 
-    //    val scene = new Scene() {
-//      root = JfxWorksheet
-//      onKeyPressed = (event: KeyEvent) => JfxWorksheet.handleKey(event.getCode)
-//    }
-
-    val scrollPane = createScrollPane(JfxWorksheet)
-    scrollPane.onMouseClicked = (event: MouseEvent) => {
-      println("Scrollpane got mouse")
-      JfxWorksheet.handleMouse(event)
+        val scene = new Scene() {
+      root = JfxWorksheet
+      onKeyPressed = (event: KeyEvent) => JfxWorksheet.handleKey(event.getCode)
     }
-    val scene = new Scene(scrollPane)
+
+//    val scrollPane = createScrollPane(JfxWorksheet)
+//    scrollPane.onMouseClicked = (event: MouseEvent) => {
+//      println("Scrollpane got mouse")
+//      JfxWorksheet.handleMouse(event)
+//    }
+//    val scene = new Scene(scrollPane)
     scene.onKeyPressed = (event: KeyEvent) => JfxWorksheet.handleKey(event.getCode)
 //    scene.onMouseClicked = (event: MouseEvent) => JfxWorksheet.handleMouse(event)
     stage.setScene(scene)
