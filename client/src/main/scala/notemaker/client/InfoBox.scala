@@ -26,13 +26,13 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
   var savedX: Int = 0
   var savedY: Int = 0
 
-    this.text = new TextArea(){
-      onKeyReleased = (event : KeyEvent) => JfxWorksheet.handleKey(event.getCode)
-//      onKeyPressed = (event: KeyEvent) => resizeInfobox()
-      onKeyTyped = (event: KeyEvent) => resizeInfobox()
-//      onKeyReleased = (event: KeyEvent) => resizeInfobox()
-      onMouseClicked = (event: MouseEvent) => handleClick
-    }
+  this.text = new TextArea(){
+    onKeyReleased = (event : KeyEvent) => JfxWorksheet.handleKey(event.getCode)
+    //      onKeyPressed = (event: KeyEvent) => resizeInfobox()
+    onKeyTyped = (event: KeyEvent) => resizeInfobox()
+    //      onKeyReleased = (event: KeyEvent) => resizeInfobox()
+    onMouseClicked = (event: MouseEvent) => handleClick
+  }
 
   def handleClick = JfxWorksheet.setFocus(this)
 
@@ -45,32 +45,32 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
   text.setStyle("-fx-border-color: transparent; -fx-border-width: 0; "
     + "-fx-border-radius: 0; -fx-focus-color: transparent;");
 
-    this.rectangle = new Rectangle(){
-    }
-    rectangle.width = text.getPrefWidth
-    rectangle.height = text.getPrefHeight + 20
-    rectangle.setFill(Color.LightGrey)
-    val background = new DropShadow(){
-        color = Color.LightGrey
-        width = rectangle.getWidth + 2
-        height = rectangle.getHeight + 2
-        offsetX = -1
-        offsetY = -1
-    }
+  this.rectangle = new Rectangle(){
+  }
+  rectangle.width = text.getPrefWidth
+  rectangle.height = text.getPrefHeight + 20
+  rectangle.setFill(Color.LightGrey)
+  val background = new DropShadow(){
+    color = Color.LightGrey
+    width = rectangle.getWidth + 2
+    height = rectangle.getHeight + 2
+    offsetX = -1
+    offsetY = -1
+  }
 
   this.getChildren().addAll(rectangle, text)
 
   onMousePressed = (event : MouseEvent) => {
-      JfxWorksheet.setFocus(this)
-      savedX = this.getLayoutX.toInt
-      savedY = this.getLayoutY.toInt
-      tempX = event.getX.toInt
-      tempY = event.getY.toInt
-      text.effect = background
+    JfxWorksheet.setFocus(this)
+    savedX = this.getLayoutX.toInt
+    savedY = this.getLayoutY.toInt
+    tempX = event.getX.toInt
+    tempY = event.getY.toInt
+    text.effect = background
   }
   onMouseReleased = (event : MouseEvent) => {
     text.effect = null
-      // @ToDo: Refactor
+    // @ToDo: Refactor
     if(this.getLayoutX.toInt != savedX || this.getLayoutY.toInt != savedY) {
       NodeManager.moveNode(node.id, this.getLayoutX.toInt, this.getLayoutY.toInt)
     }
@@ -89,8 +89,10 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
     this.setLayoutY(newY)
   }
   def setText(message: String) : Unit = {
-//    println("setting text - dupa testing")
-    this.text.setText(message)
+    //    println("setting text - dupa testing")
+    if(message != null){
+      this.text.setText(message)
+    }
     resizeInfobox()
   }
   def resizeInfobox() = {
@@ -105,4 +107,5 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
     if(height<200) rectangle.height = 220
     else rectangle.height = height + 20
   }
+  setText(node.Text)
 }
