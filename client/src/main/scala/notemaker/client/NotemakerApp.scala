@@ -79,7 +79,7 @@ class NotemakerApp extends Application {
 //    }
 //    val scene = new Scene(scrollPane)
     scene.onKeyPressed = (event: KeyEvent) => JfxWorksheet.handleKey(event.getCode)
-//    scene.onMouseClicked = (event: MouseEvent) => JfxWorksheet.handleMouse(event)
+    scene.onMouseClicked = (event: MouseEvent) => JfxWorksheet.handleMouse(event)
     stage.setScene(scene)
     stage.show()
 //    scrollPane.prefWidthProperty().bind(scene.widthProperty())
