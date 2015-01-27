@@ -6,7 +6,7 @@ import scala.collection.immutable.List
  * Created by blueeyedhush on 12/4/14.
  */
 
-class Node(val id : Int, var x: Int, var y: Int, var Text : String = "HelloW!") {}
+class Node(val id : Int, var x: Int, var y: Int, var Text : String = "") {}
 case class NodeCreatedContent(val id : Int, val x : Int, val y : Int, val text : String) extends MessageContent
 case class NodeMovedContent(val id : Int, val x : Int, val y : Int) extends MessageContent
 case class NodeDeletedContent(val id: Int) extends MessageContent
