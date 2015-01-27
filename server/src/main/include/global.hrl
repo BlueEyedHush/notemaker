@@ -24,7 +24,7 @@
 -record(node, {id, posX, posY, text}).
 -record(config, {key, val}).
 
--record(nodeCreated, {type = <<"NodeCreatedContent">>, id :: integer(), x :: integer(), y :: integer()}).
+-record(nodeCreated, {type = <<"NodeCreatedContent">>, id :: integer(), x :: integer(), y :: integer(), text}).
 %@ToDo: Shouldn't this content contain 'type' member?
 -record(containerContent, {mlist}).
 -record(idPoolContent, {type = <<"IdPoolContent">>, first, last}).

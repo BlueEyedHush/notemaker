@@ -7,7 +7,7 @@ import scala.collection.immutable.List
  */
 
 class Node(val id : Int, var x: Int, var y: Int, var Text : String = "HelloW!") {}
-case class NodeCreatedContent(val id : Int, val x : Int, val y : Int) extends MessageContent
+case class NodeCreatedContent(val id : Int, val x : Int, val y : Int, val text : String) extends MessageContent
 case class NodeMovedContent(val id : Int, val x : Int, val y : Int) extends MessageContent
 case class NodeDeletedContent(val id: Int) extends MessageContent
 case class NodeMessageContent(val id: Int, val text: String) extends MessageContent
@@ -29,7 +29,7 @@ object NodeManager {
 
   def createNode(posX : Int, posY : Int) : Unit = {
     val n = new Node(id = IdManager.getID(), x = posX, y = posY)
-    val msgObj = new GenericMessage(mtype = "NodeCreated", content = new NodeCreatedContent(id = n.id, x = n.x, y = n.y))
+    val msgObj = new GenericMessage(mtype = "NodeCreated", content = new NodeCreatedContent(id = n.id, x = n.x, y = n.y, text = n.Text))
     NetworkingService.send(msgObj)
     this.registerNode(n)
   }
@@ -66,7 +66,7 @@ object NodeManager {
   var nodeUpdatedMessageListener = new Callback[Node]
 
   private def registerNode(nc : NodeCreatedContent) : Unit = {
-    this.registerNode(new Node(id = nc.id, x = nc.x, y = nc.y))
+    this.registerNode(new Node(id = nc.id, x = nc.x, y = nc.y, Text = nc.text))
   }
 
   private def registerNode(n : Node) : Unit = {

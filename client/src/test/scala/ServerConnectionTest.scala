@@ -27,8 +27,8 @@ class ServerConnectionTest {
   @Test
   def isCaseClassToJsonConvWorking() = {
     implicit val format = DefaultFormats
-    val msgObj = new GenericMessage(mtype = "NodeCreated", content = new NodeCreatedContent(id = 0, x = 1445, y= -467))
+    val msgObj = new GenericMessage(mtype = "NodeCreated", content = new NodeCreatedContent(id = 0, x = 1445, y= -467,"test"))
     val json = org.json4s.native.Serialization.write(msgObj)
-    Assert.assertEquals("{\"mtype\":\"NodeCreated\",\"content\":{\"id\":0,\"x\":1445,\"y\":-467}}", json)
+    Assert.assertEquals("{\"mtype\":\"NodeCreated\",\"content\":{\"id\":0,\"x\":1445,\"y\":-467,\"text\":\"test\"}}", json)
   }
 }
