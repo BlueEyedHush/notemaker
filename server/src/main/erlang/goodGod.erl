@@ -68,15 +68,18 @@ handle_ord_cast(Message, State) -> {noreply, State}.
 % can return same tuples as handle_call
 handle_val_cast(Message, PID, State) ->
   case Message of
+
     clientConnected ->
       info_msg("[gG] Client connected"),
       erlang:spawn(guardianAngel, start, [State#state.listenSocket]),
       NewState = State#state{clientList = [PID|State#state.clientList]},
       {noreply, NewState};
+
     clientDisconnected ->
       info_msg("[gG] Client disconnected"),
       NewState = State#state{clientList = remove_from_list(PID, State#state.clientList, [])},
       {noreply, NewState};
+
     {nodeCreated, Descriptor} ->
       info_msg("[gG] New node created with coords: " ++ integer_to_list(Descriptor#nodeCreated.x) ++ " " ++ integer_to_list(Descriptor#nodeCreated.y)),
       Node = #node{id = Descriptor#nodeCreated.id, posX = Descriptor#nodeCreated.x, posY = Descriptor#nodeCreated.y, text = <<"">>},
@@ -85,62 +88,60 @@ handle_val_cast(Message, PID, State) ->
       broadcast_to_all_but(Descriptor#nodeCreated{type = <<"NodeCreatedContent">>}, PID, NewState#state.clientList),
       database:createNode(Node),
       {noreply, NewState};
+
     {nodeMoved, Descriptor} ->
       info_msg("[gG] Node wants to be moved"),
-      Res = find_single_matching_record(
-        fun
-          (P) when P#node.id == Descriptor#nodeMoved.id -> true;
-          (_) -> false
-        end, State#state.nodeList, []),
-      case Res of
-        {notFound, _} ->
-          warning_msg(<<"Tried to move node which is not present">>),
-          {stop, nodeNotPresent, State};
-        {N, ListWithoutEl} when is_record(N, node) ->
+      Res = updateNodeWithId(Descriptor#nodeMoved.id, State,
+        fun(N) ->
           ModNode = N#node{posX = Descriptor#nodeMoved.x, posY = Descriptor#nodeMoved.y},
-          NewState = State#state{nodeList = [ModNode|ListWithoutEl]},
-          broadcast_to_all_but(Descriptor#nodeMoved{type = <<"NodeMovedContent">>}, PID, NewState#state.clientList),
-          % @ToDo: probably not the most optimal, after removing old mechanism should be refact
           database:updateNode(ModNode#node.id, {ModNode#node.posX, ModNode#node.posY}),
+          ModNode
+        end
+      ),
+
+      case Res of
+        nodeNotPresent -> {stop, nodeNotPresent, State};
+        NewState ->
+          broadcast_to_all_but(Descriptor#nodeMoved{type = <<"NodeMovedContent">>}, PID, NewState#state.clientList),
           {noreply, NewState}
       end;
+
     {nodeDel, Descriptor} ->
       info_msg("[gG] Node wants to be deleted"),
-      Res = find_single_matching_record(
-        fun
-          (P) when P#node.id == Descriptor#nodeDeleted.id -> true;
-          (_) -> false
-        end, State#state.nodeList, []),
-      case Res of
-        {notFound, _} ->
-          warning_msg(<<"Tried to delete node which is not present">>),
-          {stop, nodeNotPresent, State};
-        {_, ListWithoutEl} ->
-          NewState = State#state{nodeList = ListWithoutEl},
-          broadcast_to_all_but(Descriptor#nodeDeleted{type = <<"NodeDeletedContent">>}, PID, NewState#state.clientList),
+      Res = updateNodeWithId(Descriptor#nodeDeleted.id, State,
+        fun(N) ->
           database:deleteNode(Descriptor#nodeDeleted.id),
+          discard
+        end
+      ),
+
+      case Res of
+        nodeNotPresent -> {stop, nodeNotPresent, State};
+        NewState ->
+          broadcast_to_all_but(Descriptor#nodeDeleted{type = <<"NodeDeletedContent">>}, PID, NewState#state.clientList),
           {noreply, NewState}
       end;
+
     {textSend, Descriptor} ->
       info_msg("[gG] Node text is being changed"),
-      Res = find_single_matching_record(
-        fun
-          (P) when P#node.id == Descriptor#textSending.id -> true;
-          (_) -> false
-        end, State#state.nodeList, []),
-      case Res of
-        {notFound, _} ->
-          warning_msg(<<"Tried to move node which is not present">>),
-          {stop, nodeNotPresent, State};
-        {N, ListWithoutEl} when is_record(N, node) ->
+      Res = updateNodeWithId(Descriptor#textSending.id, State,
+        fun(N) ->
           ModNode = N#node{text = Descriptor#textSending.text},
-          NewState = State#state{nodeList = [ModNode|ListWithoutEl]},
-          broadcast_to_all_but(Descriptor#textSending{type = <<"NodeMessageContent">>}, PID, NewState#state.clientList),
           database:updateNode(ModNode#node.id, ModNode#node.text),
+          ModNode
+        end
+      ),
+
+      case Res of
+        nodeNotPresent -> {stop, nodeNotPresent, State};
+        NewState ->
+          broadcast_to_all_but(Descriptor#textSending{type = <<"NodeMessageContent">>}, PID, NewState#state.clientList),
           {noreply, NewState}
       end;
+
     reqContent ->
       {reply, database:getAllNodes(), State};
+
     reqIdRange ->
       if
         State#state.firstFreeId > 2147483647 - State#state.idPoolSize ->
@@ -153,6 +154,7 @@ handle_val_cast(Message, PID, State) ->
           database:updateFFID(Last + 1),
           {reply, Mesg, NewState}
       end
+
   end.
 
 handle_info(Message, State) ->
@@ -177,6 +179,26 @@ remove_from_list(El, [A|List], Acc) when El == A ->
   remove_from_list(El, List, Acc);
 remove_from_list(El, [A|List], Acc) ->
   remove_from_list(El, List, [A|Acc]).
+
+% Updater can return 'discard' to remove node
+updateNodeWithId(NodeId, State, Updater) ->
+  case extractNodeById(NodeId, State) of
+    {notFound, _} ->
+      warning_msg(<<"Tried to update node which is not present">>),
+      nodeNotPresent;
+    {N, ListWithoutEl} when is_record(N, node) ->
+      case Updater(N) of
+        discard -> State#state{nodeList = ListWithoutEl};
+        ModNode -> State#state{nodeList = [ModNode|ListWithoutEl]}
+      end
+  end.
+
+extractNodeById(NodeId, State) ->
+  find_single_matching_record(
+    fun
+      (P) when P#node.id == NodeId -> true;
+      (_) -> false
+    end, State#state.nodeList, []).
 
 %also removed that element from the list, returns {Element, Rest}, changes order of element in the list
 find_single_matching_record(_, [], Rest) ->
