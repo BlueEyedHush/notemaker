@@ -7,18 +7,18 @@
 %%% Created : 01. Dec 2014 9:28 PM
 %%%-------------------------------------------------------------------
 -module(goodGod).
+-behaviour(gen_server).
 -author("blueeyedhush").
 -include("../include/global.hrl").
 %% API
--export([spawn/0, start/0, loop/1, inf_clientConn/0, inf_nodeCreated/1, inf_clientDisconn/0, req_content/0, req_id_range/0, inf_nodeMoved/1, inf_nodeDeleted/1, inf_textSend/1]).
+-export([spawn/0, init/1, handle_call/3, handle_cast/2, terminate/2, handle_info/2, val_cast/1,
+  inf_clientConn/0, inf_nodeCreated/1, inf_clientDisconn/0, req_content/0, req_id_range/0, inf_nodeMoved/1, inf_nodeDeleted/1, inf_textSend/1]).
 
 spawn() ->
-  Pid = erlang:spawn_link(?MODULE, start, []),
-  {ok, Pid}.
+  gen_server:start_link({local, goodGod}, ?MODULE, [], []).
 
-start() ->
+init(_Args) ->
   info_msg("[gG] Started"),
-  register(goodGod, self()),
   process_flag(trap_exit, true),
 
   database:start(),
@@ -35,26 +35,57 @@ start() ->
   FreeId = database:getOrCreateConfig(firstFreeId, DefFFID),
   IdPoolSize = database:getOrCreateConfig(idPoolSize, DefIdPoolSize),
   io:format("\n FFId: ~p \n", [FreeId]),
-  loop(#state{listenSocket = LS, clientList = [FirstChildPID], nodeList = database:getAllNodes(), firstFreeId = FreeId, idPoolSize = IdPoolSize}).
+  State = #state{listenSocket = LS, clientList = [FirstChildPID], nodeList = database:getAllNodes(), firstFreeId = FreeId, idPoolSize = IdPoolSize},
+  {ok, State}.
 
-loop(State) ->
-  receive
-    {clientConnected, PID} ->
+handle_call(_Message, _From, State) ->
+  {noreply, State}.
+
+handle_cast(Message, State) ->
+  case Message of
+    {valcast, Mesg, From} ->
+      case handle_val_cast(Mesg, From, State) of
+        {reply,Reply,NewState} ->
+          From ! {gG, Mesg, Reply},
+          {noreply, NewState};
+        {reply,Reply,NewState,Timeout} ->
+          From ! {gG, Mesg, Reply},
+          {noreply, NewState, Timeout};
+        {reply,Reply,NewState,hibernate} ->
+          From ! {gG, Mesg, Reply},
+          {noreply, NewState, hibernate};
+        Other ->
+          Other
+      end;
+    _ -> handle_ord_cast(Message, State)
+  end.
+
+val_cast(Message) ->
+  gen_server:cast(goodGod, {valcast, Message, self()}).
+
+handle_ord_cast(Message, State) -> {noreply, State}.
+
+% can return same tuples as handle_call
+handle_val_cast(Message, PID, State) ->
+  case Message of
+    clientConnected ->
       info_msg("[gG] Client connected"),
       erlang:spawn(guardianAngel, start, [State#state.listenSocket]),
-      goodGod:loop(State#state{clientList = [PID|State#state.clientList]});
-    {clientDisconnected, PID} ->
+      NewState = State#state{clientList = [PID|State#state.clientList]},
+      {noreply, NewState};
+    clientDisconnected ->
       info_msg("[gG] Client disconnected"),
-      goodGod:loop(State#state{clientList = remove_from_list(PID, State#state.clientList, [])});
-    {nodeCreated, PID, Descriptor} ->
+      NewState = State#state{clientList = remove_from_list(PID, State#state.clientList, [])},
+      {noreply, NewState};
+    {nodeCreated, Descriptor} ->
       info_msg("[gG] New node created with coords: " ++ integer_to_list(Descriptor#nodeCreated.x) ++ " " ++ integer_to_list(Descriptor#nodeCreated.y)),
       Node = #node{id = Descriptor#nodeCreated.id, posX = Descriptor#nodeCreated.x, posY = Descriptor#nodeCreated.y, text = <<"">>},
       NewState = State#state{nodeList = [Node|State#state.nodeList]},
       % @ToDo: Just a temporary fix, rewrite it
       broadcast_to_all_but(Descriptor#nodeCreated{type = <<"NodeCreatedContent">>}, PID, NewState#state.clientList),
       database:createNode(Node),
-      goodGod:loop(NewState);
-    {nodeMoved, PID, Descriptor} ->
+      {noreply, NewState};
+    {nodeMoved, Descriptor} ->
       info_msg("[gG] Node wants to be moved"),
       Res = find_single_matching_record(
         fun
@@ -64,16 +95,16 @@ loop(State) ->
       case Res of
         {notFound, _} ->
           warning_msg(<<"Tried to move node which is not present">>),
-          exit(nodeNotPresent);
+          {stop, nodeNotPresent, State};
         {N, ListWithoutEl} when is_record(N, node) ->
           ModNode = N#node{posX = Descriptor#nodeMoved.x, posY = Descriptor#nodeMoved.y},
           NewState = State#state{nodeList = [ModNode|ListWithoutEl]},
           broadcast_to_all_but(Descriptor#nodeMoved{type = <<"NodeMovedContent">>}, PID, NewState#state.clientList),
           % @ToDo: probably not the most optimal, after removing old mechanism should be refact
           database:updateNode(ModNode#node.id, {ModNode#node.posX, ModNode#node.posY}),
-          goodGod:loop(NewState)
+          {noreply, NewState}
       end;
-    {nodeDel, PID, Descriptor} ->
+    {nodeDel, Descriptor} ->
       info_msg("[gG] Node wants to be deleted"),
       Res = find_single_matching_record(
         fun
@@ -83,14 +114,14 @@ loop(State) ->
       case Res of
         {notFound, _} ->
           warning_msg(<<"Tried to delete node which is not present">>),
-          exit(nodeNotPresent);
+          {stop, nodeNotPresent, State};
         {_, ListWithoutEl} ->
           NewState = State#state{nodeList = ListWithoutEl},
           broadcast_to_all_but(Descriptor#nodeDeleted{type = <<"NodeDeletedContent">>}, PID, NewState#state.clientList),
           database:deleteNode(Descriptor#nodeDeleted.id),
-          goodGod:loop(NewState)
+          {noreply, NewState}
       end;
-    {textSend, PID, Descriptor} ->
+    {textSend, Descriptor} ->
       info_msg("[gG] Node text is being changed"),
       Res = find_single_matching_record(
         fun
@@ -100,36 +131,35 @@ loop(State) ->
       case Res of
         {notFound, _} ->
           warning_msg(<<"Tried to move node which is not present">>),
-          exit(nodeNotPresent);
+          {stop, nodeNotPresent, State};
         {N, ListWithoutEl} when is_record(N, node) ->
           ModNode = N#node{text = Descriptor#textSending.text},
           NewState = State#state{nodeList = [ModNode|ListWithoutEl]},
           broadcast_to_all_but(Descriptor#textSending{type = <<"NodeMessageContent">>}, PID, NewState#state.clientList),
           database:updateNode(ModNode#node.id, ModNode#node.text),
-          goodGod:loop(NewState)
+          {noreply, NewState}
       end;
-    {reqContent, PID} ->
-      send_content(PID, State),
-      goodGod:loop(State);
-    {reqIdRange, PID} ->
+    reqContent ->
+      {reply, database:getAllNodes(), State};
+    reqIdRange ->
       if
         State#state.firstFreeId > 2147483647 - State#state.idPoolSize ->
-          erlang:error(idRangeExhausted);
+          {stop, idRangeExhausted, State};
         true ->
           io:format("\nAssigned pool, firstId: ~p\n", [State#state.firstFreeId]),
           Last = State#state.firstFreeId + State#state.idPoolSize - 1,
-          send_id_pool(PID, State#state.firstFreeId, Last),
+          Mesg = {State#state.firstFreeId, Last},
+          NewState = State#state{firstFreeId = Last + 1},
           database:updateFFID(Last + 1),
-          goodGod:loop(State#state{firstFreeId = Last + 1})
-      end;
-    {'EXIT', _, _} ->
-      terminate(State);
-    A ->
-      info_msg("[gG] Unexpected message has arrived: ~p", [A]),
-      goodGod:loop(State)
+          {reply, Mesg, NewState}
+      end
   end.
 
-terminate(State) ->
+handle_info(Message, State) ->
+  info_msg("[gG] Unexpected message has arrived: ~p", [Message]),
+  {noreply, State}.
+
+terminate(_Reason, State) ->
   info_msg("[gG] Terminating..."),
   database:shutdown(),
   gen_tcp:close(State#state.listenSocket).
@@ -162,35 +192,28 @@ find_single_matching_record(Pred, [H|T], AlreadyChecked) ->
 
 % wrappers for message-based communication with goodGod
 inf_clientConn() ->
-  goodGod ! {clientConnected, self()}.
+  val_cast(clientConnected).
 
 inf_clientDisconn() ->
-  goodGod ! {clientDisconnected, self()}.
+  val_cast(clientDisconnected).
 
 inf_nodeCreated(Descriptor) ->
-  goodGod ! {nodeCreated, self(), Descriptor}.
+  val_cast({nodeCreated, Descriptor}).
 
 inf_nodeMoved(Descriptor) ->
-  goodGod ! {nodeMoved, self(), Descriptor}.
+  val_cast({nodeMoved, Descriptor}).
 
 inf_nodeDeleted(Desc) ->
-  goodGod ! {nodeDel, self(), Desc}.
+  val_cast({nodeDel, Desc}).
 
 inf_textSend(Desc) ->
-  goodGod ! {textSend, self(), Desc}.
+  val_cast({textSend, Desc}).
 
 req_content() ->
-  goodGod ! {reqContent, self()}.
+  val_cast(reqContent).
 
 req_id_range() ->
-  goodGod ! {reqIdRange, self()}.
+  val_cast(reqIdRange).
 
 send_retransmit(PID, Mesg) ->
   PID ! {gG, retrans, Mesg}.
-
-send_content(PID, State) ->
-  NodeList = database:getAllNodes(),
-  PID ! {gG, content, NodeList}.
-
-send_id_pool(PID, First, Last) ->
-  PID ! {gG, idPool, {First, Last}}.

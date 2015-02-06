@@ -80,7 +80,7 @@ dispatchSrvMessage(Socket, retrans, Msg) ->
       send_to_client(Socket, Em),
       ok
   end;
-dispatchSrvMessage(Socket, content, Cont) ->
+dispatchSrvMessage(Socket, reqContent, Cont) ->
   case Cont of
     [] -> ok;
     C ->
@@ -92,7 +92,7 @@ dispatchSrvMessage(Socket, content, Cont) ->
       Msg = messageEnDeCoder:encode(ContentCreatedList),
       send_to_client(Socket, Msg)
   end;
-dispatchSrvMessage(Socket, idPool, {First,Last}) ->
+dispatchSrvMessage(Socket, reqIdRange, {First,Last}) ->
   Em = messageEnDeCoder:encode(#idPoolContent{first = First, last = Last}),
   send_to_client(Socket, Em).
 
