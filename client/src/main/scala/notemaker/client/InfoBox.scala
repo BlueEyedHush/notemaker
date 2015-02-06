@@ -89,23 +89,23 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
     this.setLayoutY(newY)
   }
   def setText(message: String) : Unit = {
-    //    println("setting text - dupa testing")
+//    println("setting text - dupa testing")
     if(message != null){
       this.text.setText(message)
     }
     resizeInfobox()
   }
   def resizeInfobox() = {
-    val line = text.getText.split("\n")
-    val height = line.length * Toolkit.getToolkit.getFontLoader.getFontMetrics(text.getFont()).getLineHeight()
-    val width = line.map(p => Toolkit.getToolkit.getFontLoader.computeStringWidth(p, text.getFont)).reduce((a,b) => if(a > b) a else b) + 28
-    text.setPrefWidth(width)
-    text.setPrefHeight(height)
-    if(width<200) rectangle.width = 200
-    else if(width>600) rectangle.width = 600
-    else rectangle.width = width
-    if(height<200) rectangle.height = 220
-    else rectangle.height = height + 20
+      val line = text.getText.split("\n")
+      val height = line.length * Toolkit.getToolkit.getFontLoader.getFontMetrics(text.getFont()).getLineHeight()
+      val width = line.map(p => Toolkit.getToolkit.getFontLoader.computeStringWidth(p, text.getFont)).reduce((a,b) => if(a > b) a else b) + 28
+      text.setPrefWidth(width)
+      text.setPrefHeight(height)
+      if(width<200) rectangle.width = 200
+      else if(width>600) rectangle.width = 600
+      else rectangle.width = width
+      if(height<200) rectangle.height = 220
+      else rectangle.height = height + 20
   }
   setText(node.Text)
 }

@@ -18,6 +18,18 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.no-hope</groupId>
+            <artifactId>akka</artifactId>
+            <version>0.1.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_2.10</artifactId>
+            <version>2.3.9</version>
+        </dependency>
+
+
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
@@ -47,7 +59,6 @@
             <artifactId>json4s-native_${scala.version2}</artifactId>
             <version>3.2.11</version>
         </dependency>
-
     </dependencies>
 
     <build>

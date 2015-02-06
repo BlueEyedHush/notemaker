@@ -110,6 +110,7 @@ object JfxWorksheet extends Pane {
   }
 
   def setFocus(infoBox: InfoBox) = {
+    if (focusedIB != null) NodeManager.sendText(focusedIB.node.id, focusedIB.text.getText)
     focusedIB = infoBox
     content.remove(infoBox)
     for(elem <- sequence) if (elem != infoBox) elem.rectangle.fill = Color.LightGrey
