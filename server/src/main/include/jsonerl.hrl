@@ -16,6 +16,7 @@
   )
 ).
 
+ % @ToDo: Jeśli byś chciał dodać obsługę wartości domyślnych w rekordach, trzeba zacząć tutaj
 -define(struct_to_record(RecordName, Struct),
   % I use fun here in order to avoid possible variable collison by shaddowing them
   fun(ValuesByFieldsDict) ->

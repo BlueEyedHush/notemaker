@@ -84,8 +84,7 @@ handle_val_cast(Message, PID, State) ->
       info_msg("[gG] New node created with coords: " ++ integer_to_list(Descriptor#nodeCreated.x) ++ " " ++ integer_to_list(Descriptor#nodeCreated.y)),
       Node = #node{id = Descriptor#nodeCreated.id, posX = Descriptor#nodeCreated.x, posY = Descriptor#nodeCreated.y, text = <<"">>},
       NewState = State#state{nodeList = [Node|State#state.nodeList]},
-      % @ToDo: Just a temporary fix, rewrite it
-      broadcast_to_all_but(Descriptor#nodeCreated{type = <<"NodeCreatedContent">>}, PID, NewState#state.clientList),
+      broadcast_to_all_but(Descriptor, PID, NewState#state.clientList),
       database:createNode(Node),
       {noreply, NewState};
 
@@ -100,9 +99,10 @@ handle_val_cast(Message, PID, State) ->
       ),
 
       case Res of
-        nodeNotPresent -> {stop, nodeNotPresent, State};
+        nodeNotPresent ->
+          {noreply, State};
         NewState ->
-          broadcast_to_all_but(Descriptor#nodeMoved{type = <<"NodeMovedContent">>}, PID, NewState#state.clientList),
+          broadcast_to_all_but(Descriptor, PID, NewState#state.clientList),
           {noreply, NewState}
       end;
 
@@ -116,9 +116,10 @@ handle_val_cast(Message, PID, State) ->
       ),
 
       case Res of
-        nodeNotPresent -> {stop, nodeNotPresent, State};
+        nodeNotPresent ->
+          {noreply, State};
         NewState ->
-          broadcast_to_all_but(Descriptor#nodeDeleted{type = <<"NodeDeletedContent">>}, PID, NewState#state.clientList),
+          broadcast_to_all_but(Descriptor, PID, NewState#state.clientList),
           {noreply, NewState}
       end;
 
@@ -133,9 +134,10 @@ handle_val_cast(Message, PID, State) ->
       ),
 
       case Res of
-        nodeNotPresent -> {stop, nodeNotPresent, State};
+        nodeNotPresent ->
+          {noreply, State};
         NewState ->
-          broadcast_to_all_but(Descriptor#textSending{type = <<"NodeMessageContent">>}, PID, NewState#state.clientList),
+          broadcast_to_all_but(Descriptor, PID, NewState#state.clientList),
           {noreply, NewState}
       end;
 

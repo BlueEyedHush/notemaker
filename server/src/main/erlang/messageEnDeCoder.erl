@@ -63,11 +63,22 @@ decode(Mesg) ->
   Record =
     case MesgType of
       "Test" -> test;
-      "NodeCreated" -> ?json_to_record(nodeCreated, JsonContent);
-      "IdPool" -> ?json_to_record(idPoolContent, JsonContent);
-      "NodeMoved" -> ?json_to_record(nodeMoved, JsonContent);
-      "NodeDeleted" -> ?json_to_record(nodeDeleted, JsonContent);
-      "TextSending" -> ?json_to_record(textSending, JsonContent)
+      "NodeCreated" ->
+        Rec = ?json_to_record(nodeCreated, JsonContent),
+        % json_to_record ignores default values
+        Rec#nodeCreated{type = <<"NodeCreatedContent">>};
+      "IdPool" ->
+        Rec = ?json_to_record(idPoolContent, JsonContent),
+        Rec#idPoolContent{type = <<"IdPoolContent">>};
+      "NodeMoved" ->
+        Rec = ?json_to_record(nodeMoved, JsonContent),
+        Rec#nodeMoved{type = <<"NodeMovedContent">>};
+      "NodeDeleted" ->
+        Rec = ?json_to_record(nodeDeleted, JsonContent),
+        Rec#nodeDeleted{type = <<"NodeDeletedContent">>};
+      "TextSending" ->
+        Rec = ?json_to_record(textSending, JsonContent),
+        Rec#textSending{type = <<"NodeMessageContent">>}
     end.
 
 parse(Mesg) ->
