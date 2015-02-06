@@ -65,8 +65,10 @@ object JfxWorksheet extends Pane {
     println("Deleting nodes")
     val extrRes = extractInfoboxById(nid)
 
-    sequence = extrRes.rest
-    content.remove(extrRes.found)
+    if(extrRes.found != null) {
+      sequence = extrRes.rest
+      content.remove(extrRes.found)
+    }
   }
 
   def updateInfobox(id : Int, text: String) : Unit = {
@@ -132,6 +134,7 @@ object JfxWorksheet extends Pane {
   def handleKey(key: KeyCode): Unit = {
     key.toString match {
       case "DELETE" if focusedIB != null =>
+        this.requestFocus()
         delNode(focusedIB.node.id)
         NodeManager.deleteNode(focusedIB.node.id)
         focusedIB = null
