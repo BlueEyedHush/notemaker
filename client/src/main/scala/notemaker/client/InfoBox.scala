@@ -108,4 +108,9 @@ class InfoBox(val node : Node, var x1 : Double, var x2 : Double) extends Group {
       else rectangle.height = height + 20
   }
   setText(node.Text)
+
+  override def requestFocus() = {
+    super.requestFocus()
+    text.requestFocus()
+  }
 }

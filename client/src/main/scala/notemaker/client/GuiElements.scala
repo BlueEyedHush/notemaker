@@ -88,7 +88,9 @@ object JfxWorksheet extends Pane {
     val node = new InfoBox(n, x1, x2)
     sequence = node +: sequence
     content.add(node)
+    setFocus(node)
   }
+
 
   def moveNode(id : Int, newX : Double, newY : Double) : Unit = {
     var found : InfoBox = null
@@ -112,6 +114,7 @@ object JfxWorksheet extends Pane {
   def setFocus(infoBox: InfoBox) = {
     if (focusedIB != null) NodeManager.sendText(focusedIB.node.id, focusedIB.text.getText)
     focusedIB = infoBox
+    infoBox.requestFocus()
     content.remove(infoBox)
     for(elem <- sequence) if (elem != infoBox) elem.rectangle.fill = Color.LightGrey
     content.add(infoBox)
