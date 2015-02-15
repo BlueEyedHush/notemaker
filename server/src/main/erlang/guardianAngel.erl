@@ -7,53 +7,65 @@
 %%% Created : 27. Nov 2014 9:32 AM
 %%%-------------------------------------------------------------------
 -module(guardianAngel).
+-behaviour(gen_server).
 -author("blueeyedhush").
 -include("../include/global.hrl").
 
 %% API
 -export([
-  start/1
+  spawn/1, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2
 ]).
 
-start(ListenSocket) ->
+spawn(ListenSocket) ->
+  gen_server:start_link(?MODULE, {ListenSocket},[]).
+
+init({ListenSocket}) ->
   info_msg("New guardianAngel started"),
   io:format("PID: ~w \n", [self()]),
+
   process_flag(trap_exit, true),
-  case gen_tcp:accept(ListenSocket) of
-    {ok, AS} ->
-      inet:setopts(AS, [{nodelay, true}, {packet, 4}]),
-      goodGod:inf_clientConn(),
-      goodGod:req_content(),
-      loop(AS);
-    {error, _} -> exit(socketFail)
+
+  gen_server:cast(self(), waitForClient),
+  {ok, #guardian_state{listen_socket = ListenSocket}}.
+
+handle_call(_Message, _From, State) ->
+  {noreply, State}.
+
+handle_cast(Message, State) ->
+  case Message of
+    waitForClient ->
+      case gen_tcp:accept(State#guardian_state.listen_socket) of
+        {ok, AS} ->
+          inet:setopts(AS, [{nodelay, true}, {packet, 4}]),
+          goodGod:inf_clientConn(),
+          goodGod:req_content(),
+          {noreply, State#guardian_state{accept_socket = AS}};
+        {error, _} -> {stop, accept_failure, State}
+      end;
+   {gG, Type, Mesg} ->
+     info_msg("Received request from gG"),
+     dispatchSrvMessage(State#guardian_state.accept_socket, Type, Mesg),
+     {noreply, State}
   end.
 
-loop(AS) ->
-  receive
+handle_info(Message, State) ->
+  case Message of
     {tcp, Socket, Msg} ->
       info_msg("Received TCP message: \n" ++ Msg),
       ConvertedMesg = messageEnDeCoder:decode(Msg),
-      dispatchTcpMessage(Socket, ConvertedMesg),
-      loop(AS);
+      dispatchTcpMessage(Socket, ConvertedMesg);
     {tcp_closed, _} ->
       info_msg("Socket closed, so child is exiting"),
       goodGod:inf_clientDisconn(),
       exit(normal);
-    {gG, Type, Mesg} ->
-      info_msg("Received request from gG"),
-      dispatchSrvMessage(AS, Type, Mesg),
-      loop(AS);
-    {'EXIT', _, _} ->
-      terminate(AS);
     A ->
-      info_msg("Child received an unexpected present: ~p", [A]),
-      loop(AS)
-  end.
+      info_msg("Child received an unexpected present: ~p", [A])
+  end,
+  {noreply, State}.
 
-terminate(AcceptSocket) ->
+terminate(_Reason, State) ->
   info_msg("Child is being terminated"),
-  io:write(exitting),
-  gen_tcp:close(AcceptSocket).
+  gen_tcp:close(State#guardian_state.accept_socket).
 
 send_to_client(Socket, Msg) ->
   gen_tcp:send(Socket, Msg).
@@ -68,6 +80,7 @@ dispatchTcpMessage(_, Rec) when is_record(Rec, nodeDeleted) ->
 dispatchTcpMessage(_, Rec) when is_record(Rec, textSending) ->
   goodGod:inf_textSend(Rec);
 dispatchTcpMessage(_, Rec) when is_record(Rec, idPoolContent) ->
+  info_msg(<<"dispatchTcpMessage: idPool request">>),
   goodGod:req_id_range();
 dispatchTcpMessage(Soc, test) ->
   send_to_client(Soc, "{\"mtype\":\"Test\",\"content\":{}}").

@@ -18,8 +18,9 @@
 
 init(_Arg) ->
   info_msg("Supervisor started"),
-  {ok, {{one_for_one, 3, 10}, [
-    {gG, {goodGod, spawn, []}, permanent, 10000, worker, dynamic}
+  {ok, {{one_for_one, 2, 1}, [
+    {chSupV, {guardianAngelSuperv, spawn, []}, transient, 2000, supervisor, [guardianAngelSuperv]},
+    {gG, {goodGod, spawn, []}, transient, 2000, worker, [goodGod]}
   ]}}.
 
 
