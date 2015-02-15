@@ -27,15 +27,15 @@ init(_Args) ->
   {ok, LS} = gen_tcp:listen(Port, [{active, true}, list]),
   io:format("~w \n", [LS]),
 
-  %spawn first child
-  FirstChildPID = erlang:spawn(guardianAngel, start, [LS]),
-  register(child, FirstChildPID),
   {ok, DefIdPoolSize }= application:get_env(idPoolSize),
   {ok, DefFFID} = application:get_env(firstFreeId),
   FreeId = database:getOrCreateConfig(firstFreeId, DefFFID),
   IdPoolSize = database:getOrCreateConfig(idPoolSize, DefIdPoolSize),
   io:format("\n FFId: ~p \n", [FreeId]),
-  State = #state{listenSocket = LS, clientList = [FirstChildPID], nodeList = database:getAllNodes(), firstFreeId = FreeId, idPoolSize = IdPoolSize},
+  State = #state{listenSocket = LS, clientList = [], nodeList = database:getAllNodes(), firstFreeId = FreeId, idPoolSize = IdPoolSize},
+
+  %spawn first child
+  guardianAngelSuperv:addChild(LS),
   {ok, State}.
 
 handle_call(_Message, _From, State) ->
@@ -46,13 +46,13 @@ handle_cast(Message, State) ->
     {valcast, Mesg, From} ->
       case handle_val_cast(Mesg, From, State) of
         {reply,Reply,NewState} ->
-          From ! {gG, Mesg, Reply},
+          gen_server:cast(From, {gG, Mesg, Reply}),
           {noreply, NewState};
         {reply,Reply,NewState,Timeout} ->
-          From ! {gG, Mesg, Reply},
+          gen_server:cast(From, {gG, Mesg, Reply}),
           {noreply, NewState, Timeout};
         {reply,Reply,NewState,hibernate} ->
-          From ! {gG, Mesg, Reply},
+          gen_server:cast(From, {gG, Mesg, Reply}),
           {noreply, NewState, hibernate};
         Other ->
           Other
@@ -63,7 +63,7 @@ handle_cast(Message, State) ->
 val_cast(Message) ->
   gen_server:cast(goodGod, {valcast, Message, self()}).
 
-handle_ord_cast(Message, State) -> {noreply, State}.
+handle_ord_cast(_Message, State) -> {noreply, State}.
 
 % can return same tuples as handle_call
 handle_val_cast(Message, PID, State) ->
@@ -71,7 +71,7 @@ handle_val_cast(Message, PID, State) ->
 
     clientConnected ->
       info_msg("[gG] Client connected"),
-      erlang:spawn(guardianAngel, start, [State#state.listenSocket]),
+      guardianAngelSuperv:addChild(State#state.listenSocket),
       NewState = State#state{clientList = [PID|State#state.clientList]},
       {noreply, NewState};
 
@@ -165,8 +165,8 @@ handle_info(Message, State) ->
 
 terminate(_Reason, State) ->
   info_msg("[gG] Terminating..."),
-  database:shutdown(),
-  gen_tcp:close(State#state.listenSocket).
+  gen_tcp:close(State#state.listenSocket),
+  database:shutdown().
 
 broadcast_to_all_but(_, _, []) -> ok;
 broadcast_to_all_but(Record, But, [R|Recipients]) when R == But ->
@@ -240,4 +240,4 @@ req_id_range() ->
   val_cast(reqIdRange).
 
 send_retransmit(PID, Mesg) ->
-  PID ! {gG, retrans, Mesg}.
+  gen_server:cast(PID, {gG, retrans, Mesg}).
